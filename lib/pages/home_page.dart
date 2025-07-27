@@ -1,10 +1,7 @@
 import 'dart:math';
 
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:auto_size_text_field/auto_size_text_field.dart';
 import 'package:expense_tracker/helper/database_helper.dart';
 import 'package:expense_tracker/models/expense_type.dart';
-import 'package:expense_tracker/shared/calculator_new.dart';
 import 'package:expense_tracker/shared/calcutaor.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
@@ -17,13 +14,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final Map<String, String> _accountIcons = {
-    'CASH': 'assets/expense_trcker_icons/money.png',
-    'UPI': 'assets/expense_trcker_icons/icons8-bhim-48.png',
-    'Online': 'assets/expense_trcker_icons/cashless-payment.png',
-    'CARD': 'assets/expense_trcker_icons/contactless.png',
-  };
-
   final Random _random = Random();
 
   // Generate a random color
@@ -234,7 +224,7 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
-                            _accountIcons[accounts[index].accountName]!,
+                            accountIcons[accounts[index].accountName]!,
                             height: 48,
                             width: 48,
                           ),

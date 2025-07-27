@@ -5,6 +5,7 @@ Future<void> showNoteDialog({
   required Function(String note) onNoteSaved,
   required Function(String note) onPaidToSaved,
   String initialNote = '',
+  String initialPaidTo = '',
 }) async {
   // ignore: no_leading_underscores_for_local_identifiers
   final TextEditingController _noteController = TextEditingController(
@@ -12,7 +13,7 @@ Future<void> showNoteDialog({
   );
   // ignore: no_leading_underscores_for_local_identifiers
   final TextEditingController _paidToController = TextEditingController(
-    text: initialNote,
+    text: initialPaidTo,
   );
 
   await showDialog(

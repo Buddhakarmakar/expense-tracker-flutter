@@ -13,3 +13,10 @@ final Map<String, String> expenseIconList = {
   'Transport': 'assets/expense_trcker_icons/bus.png',
   'Vacations': 'assets/expense_trcker_icons/beach.png',
 };
+
+final Map<String, String> accountIcons = {
+  'CASH': 'assets/expense_trcker_icons/money.png',
+  'UPI': 'assets/expense_trcker_icons/icons8-bhim-48.png',
+  'Online': 'assets/expense_trcker_icons/cashless-payment.png',
+  'CARD': 'assets/expense_trcker_icons/contactless.png',
+};

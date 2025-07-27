@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
+
 class TransactionModel {
-  final int transactionId;
+  int transactionId;
   final String transactionType; // Use an enum if needed
   final double amount;
   final String paymentMethod;
@@ -24,6 +26,10 @@ class TransactionModel {
     required this.transactionTime,
     this.createdAt,
   });
+
+  setTransactionId(int id) {
+    transactionId = id;
+  }
 
   // Factory constructor for JSON deserialization
   factory TransactionModel.fromJson(Map<String, dynamic> json) {

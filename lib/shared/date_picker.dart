@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 Future<void> pickStylishDate({
   required BuildContext context,
   required Function(DateTime) onDatePick,
+  DateTime? initialDate,
 }) async {
   final DateTime? selectedDate = await showDatePicker(
     context: context,
-    initialDate: DateTime.now(),
+    initialDate: initialDate ?? DateTime.now(),
     firstDate: DateTime(2000),
     lastDate: DateTime(2100),
     builder: (context, child) {

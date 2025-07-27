@@ -12,6 +12,7 @@ class DatabaseHelper {
 
   static Database? _database;
   static List<ExpenseType> expenseTypeList = [];
+  static List<Account> accountList = [];
   static int? lastTransactionId;
   DatabaseHelper._init();
 
@@ -112,7 +113,9 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query('accounts');
     print("Accouts ->  $maps <-");
-    return maps.map((map) => Account.fromMap(map)).toList();
+    final res = maps.map((map) => Account.fromMap(map)).toList();
+    accountList = res;
+    return res;
   }
 
   // Optional: Preload expense types
@@ -499,6 +502,24 @@ class DatabaseHelper {
     }
   }
 
+  Future<int> updateTransaction(TransactionModel transactionData) async {
+    final db = await database;
+    try {
+      print("Update transaction---------");
+      print(transactionData.toJson().toString());
+      final count = await db.update(
+        'transactions',
+        transactionData.toMap(),
+        where: 'transaction_id= ?',
+        whereArgs: [transactionData.transactionId],
+      );
+      return count;
+    } catch (e) {
+      print(e);
+      return 0;
+    }
+  }
+
   Future<List<TransactionWithType>> fetchTransactionsWithExpenseType() async {
     final db = await DatabaseHelper.instance.database;
 
@@ -516,7 +537,7 @@ class DatabaseHelper {
       t.transaction_date,
       t.transaction_time
     FROM transactions t
-    JOIN expense_types e ON t.expense_type_id = e.expense_type_id ORDER BY t.transaction_date desc
+    JOIN expense_types e ON t.expense_type_id = e.expense_type_id ORDER BY t.transaction_date desc, TIME(t.transaction_time) asc
   ''');
 
     // await db.delete('transactions');
@@ -525,7 +546,14 @@ class DatabaseHelper {
         result.map((json) => TransactionWithType.fromJson(json)).toList();
 
     lastTransactionId = res[0].transactionId;
-
+    res.forEach((item) {
+      print(
+        item.transactionDate +
+            ' ' +
+            item.transactionTime +
+            item.transactionId.toString(),
+      );
+    });
     return res;
   }
 }

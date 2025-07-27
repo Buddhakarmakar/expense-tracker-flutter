@@ -2,16 +2,25 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:expense_tracker/helper/database_helper.dart';
 import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
+import 'package:expense_tracker/models/transaction_with_type.dart';
 import 'package:expense_tracker/shared/category_picker.dart';
 import 'package:expense_tracker/shared/date_picker.dart';
 import 'package:expense_tracker/shared/note_taker.dart';
+import 'package:expense_tracker/shared/payment_method_picker.dart';
 import 'package:expense_tracker/shared/time_picker.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
 class CalculatorBottomSheet extends StatefulWidget {
   final ExpenseType expenseType;
-  const CalculatorBottomSheet({super.key, required this.expenseType});
+  final bool newTransaction;
+  final TransactionWithType? transactionModel;
+  const CalculatorBottomSheet({
+    super.key,
+    required this.expenseType,
+    this.newTransaction = true,
+    this.transactionModel,
+  });
 
   @override
   State<CalculatorBottomSheet> createState() => _CalculatorBottomSheetState();
@@ -27,11 +36,32 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
 
+  String paymentMethod = 'CASH';
+  late TransactionWithType _model;
+
   @override
   void initState() {
     super.initState();
     selectedCategory = widget.expenseType;
-    // Access the expenseType from the widget
+    if (!widget.newTransaction) {
+      // DatabaseHelper.
+      _model = widget.transactionModel ?? TransactionWithType.withDefaults();
+
+      setModelValues(_model);
+    }
+  }
+
+  void setModelValues(TransactionWithType model) {
+    _input = model.amount.toString();
+    selectedCategory = ExpenseType(
+      expenseTypeId: model.expenseTypeId,
+      expenseTypeName: model.expenseTypeName,
+    );
+    transactionNote = model.description;
+    paidToInput = model.paidTo;
+    selectedDate = DateTime.parse(model.transactionDate);
+    selectedTime = parseTimeOfDay(model.transactionTime);
+    paymentMethod = model.paymentMethod;
   }
 
   void onPressed(String val) {
@@ -53,43 +83,69 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
       transactionId: DatabaseHelper.lastTransactionId ?? 0 + 1,
       transactionType: "EXPENSE",
       amount: double.parse(_input.trim()),
-      paymentMethod: 'CASH',
+      paymentMethod: paymentMethod,
       accountId: 101,
       expenseTypeId: selectedCategory.expenseTypeId,
       transactionDate: selectedDate,
-      transactionTime: selectedTime.toString(),
+      transactionTime: formatTransactionTime(selectedTime),
       description: transactionNote,
       paidTo: paidToInput,
       createdAt: DateTime.now(),
     );
 
-    await DatabaseHelper.instance.insertTransaction(tm);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Transaction added!'),
-        duration: Duration(seconds: 4),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        action: SnackBarAction(
-          label: 'UNDO',
-          textColor: Colors.white,
-          onPressed: () {
-            // Undo logic here
-            Future<int> deleteCount =
-                DatabaseHelper.instance.deleteLastTransactcion();
-            deleteCount.then((value) {
-              if (value == 1) {
-                print("Delete Complete");
-              } else {
-                print("Delete failed");
-              }
-            });
-          },
+    print("Insaide on add");
+    if (!widget.newTransaction) {
+      print("Insaide on add !newTransaction");
+      tm.transactionId = _model.transactionId;
+
+      print("des---------" + (transactionNote ?? "null"));
+      await DatabaseHelper.instance.updateTransaction(tm);
+      setState(() {
+        DatabaseHelper.instance.fetchTransactionsWithExpenseType();
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Transaction Updated!'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.blue[800],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      await DatabaseHelper.instance.insertTransaction(tm);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Transaction added!'),
+          duration: Duration(seconds: 4),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          action: SnackBarAction(
+            label: 'UNDO',
+            textColor: Colors.white,
+            onPressed: () {
+              // Undo logic here
+              Future<int> deleteCount =
+                  DatabaseHelper.instance.deleteLastTransactcion();
+              deleteCount.then((value) {
+                if (value == 1) {
+                  print("Delete Complete");
+                } else {
+                  print("Delete failed");
+                }
+              });
+            },
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -102,6 +158,27 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
         children: [
           Row(
             children: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple[300],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () => _openpaymentMethodPicker(context),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      accountIcons[paymentMethod]!,
+                      height: 20,
+                      width: 20,
+                    ),
+                    SizedBox(width: 5),
+                    Text(paymentMethod),
+                  ],
+                ),
+              ),
+              SizedBox(width: 10),
               Expanded(
                 child: Align(
                   alignment: Alignment.center,
@@ -130,6 +207,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
           ),
 
           const SizedBox(height: 24),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -167,6 +245,8 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                     onPaidToSaved: (paidTo) {
                       paidToInput = paidTo;
                     },
+                    initialNote: transactionNote ?? '',
+                    initialPaidTo: paidToInput ?? '',
                   );
                 },
               ),
@@ -176,6 +256,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 onPressed: () {
                   pickStylishDate(
                     context: context,
+                    initialDate: selectedDate,
                     onDatePick: (sd) {
                       // print("Sd" + sd.toString());
 
@@ -188,6 +269,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 onPressed: () {
                   pickStyledTime(
                     context: context,
+                    selectedTime: selectedTime,
                     onTimePick: (time) {
                       selectedTime = time;
                     },
@@ -243,6 +325,22 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
       },
     );
   }
+
+  void _openpaymentMethodPicker(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return PaymentMethodPicker(
+          paymentMethods: DatabaseHelper.accountList,
+          onPaymentMethodSelected: (selected) {
+            setState(() {
+              paymentMethod = selected;
+            });
+          },
+        );
+      },
+    );
+  }
 }
 
 class CalculatorButton extends StatelessWidget {
@@ -283,4 +381,29 @@ class CalculatorButton extends StatelessWidget {
       ),
     );
   }
+}
+
+TimeOfDay parseTimeOfDay(String timeString) {
+  print("parseTimeOfDay ----------" + timeString);
+  final parts = timeString.split(':');
+  final hour = int.parse(parts[0]);
+  final minute = int.parse(parts[1]);
+  return TimeOfDay(hour: hour, minute: minute);
+}
+
+String formatTransactionTime(TimeOfDay timeOfDay) {
+  final now = DateTime.now();
+  final fullDateTime = DateTime(
+    now.year,
+    now.month,
+    now.day,
+    timeOfDay.hour,
+    timeOfDay.minute,
+    0, // default second
+    97, // hundredths of a second as milliseconds (97 ms)
+  );
+  return "${fullDateTime.hour.toString().padLeft(2, '0')}:"
+      "${fullDateTime.minute.toString().padLeft(2, '0')}:"
+      "${fullDateTime.second.toString().padLeft(2, '0')}"
+      "${(fullDateTime.millisecond).toString().padLeft(2, '0')}";
 }

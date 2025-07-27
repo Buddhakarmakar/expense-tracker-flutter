@@ -1,5 +1,7 @@
 import 'package:expense_tracker/helper/database_helper.dart';
+import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
+import 'package:expense_tracker/shared/calcutaor.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
@@ -121,8 +123,50 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                           height: 1,
                                           color: Colors.blueGrey,
                                         ),
+
                                         ListTile(
-                                          title: Text('Item B'),
+                                          title: Text('Update '),
+                                          leading: Icon(Icons.edit_outlined),
+                                          onTap: () async {
+                                            Navigator.pop(context);
+                                            showModalBottomSheet(
+                                              context: context,
+                                              isScrollControlled: true,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.vertical(
+                                                          top: Radius.circular(
+                                                            24,
+                                                          ),
+                                                        ),
+                                                  ),
+                                              builder:
+                                                  (
+                                                    context,
+                                                  ) => CalculatorBottomSheet(
+                                                    expenseType: ExpenseType(
+                                                      expenseTypeId:
+                                                          transactions[index]
+                                                              .expenseTypeId,
+                                                      expenseTypeName:
+                                                          transactions[index]
+                                                              .expenseTypeName,
+                                                    ),
+                                                    newTransaction: false,
+                                                    transactionModel:
+                                                        transactions[index],
+                                                  ),
+                                            );
+                                          },
+                                        ),
+                                        SizedBox(height: 12),
+                                        Container(
+                                          height: 1,
+                                          color: Colors.blueGrey,
+                                        ),
+                                        ListTile(
+                                          title: Text('Delete '),
                                           leading: Icon(Icons.delete),
                                           onTap: () async {
                                             Navigator.pop(context);

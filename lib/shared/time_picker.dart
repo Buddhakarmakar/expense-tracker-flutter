@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 Future<void> pickStyledTime({
   required BuildContext context,
   required Function(TimeOfDay) onTimePick,
+  TimeOfDay? selectedTime,
 }) async {
   final TimeOfDay? picked = await showTimePicker(
     context: context,
-    initialTime: TimeOfDay.now(),
+    initialTime: selectedTime ?? TimeOfDay.now(),
     builder: (context, child) {
       return Theme(
         data: ThemeData.dark().copyWith(
