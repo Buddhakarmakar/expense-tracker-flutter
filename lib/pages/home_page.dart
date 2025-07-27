@@ -137,7 +137,10 @@ class _HomePageState extends State<HomePage> {
                                   top: Radius.circular(24),
                                 ),
                               ),
-                              builder: (context) => CalculatorBottomSheet(),
+                              builder:
+                                  (context) => CalculatorBottomSheet(
+                                    expenseType: expenses[index],
+                                  ),
                             );
                           },
                           borderRadius: BorderRadius.circular(
@@ -268,79 +271,79 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-Widget _buildBottomSheet(BuildContext context) {
-  return Container(
-    padding: EdgeInsets.all(20),
-    height: 500,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Center(
-        //   child: Container(
-        //     width: 40,
-        //     height: 4,
-        //     decoration: BoxDecoration(
-        //       color: Colors.grey[600],
-        //       borderRadius: BorderRadius.circular(2),
-        //     ),
-        //   ),
-        // ),
-        SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AutoSizeText(
-              '1,000',
-              style: TextStyle(fontSize: 40, color: Colors.white),
-              maxLines: 1,
-              minFontSize: 14,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+// Widget _buildBottomSheet(BuildContext context) {
+//   return Container(
+//     padding: EdgeInsets.all(20),
+//     height: 500,
+//     child: Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         // Center(
+//         //   child: Container(
+//         //     width: 40,
+//         //     height: 4,
+//         //     decoration: BoxDecoration(
+//         //       color: Colors.grey[600],
+//         //       borderRadius: BorderRadius.circular(2),
+//         //     ),
+//         //   ),
+//         // ),
+//         SizedBox(height: 20),
+//         Row(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             AutoSizeText(
+//               '1,000',
+//               style: TextStyle(fontSize: 40, color: Colors.white),
+//               maxLines: 1,
+//               minFontSize: 14,
+//               overflow: TextOverflow.ellipsis,
+//             ),
+//           ],
+//         ),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              '',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.pinkAccent,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Text(
-            "Resturants",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        SizedBox(height: 12),
+//         Row(
+//           mainAxisAlignment: MainAxisAlignment.end,
+//           children: [
+//             Text(
+//               '',
+//               style: TextStyle(
+//                 fontSize: 12,
+//                 fontWeight: FontWeight.bold,
+//                 color: Colors.white,
+//               ),
+//             ),
+//           ],
+//         ),
+//         SizedBox(height: 12),
+//         Container(
+//           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+//           decoration: BoxDecoration(
+//             color: Colors.pinkAccent,
+//             borderRadius: BorderRadius.circular(18),
+//           ),
+//           child: Text(
+//             "Resturants",
+//             style: TextStyle(
+//               color: Colors.white,
+//               fontSize: 18,
+//               fontWeight: FontWeight.bold,
+//             ),
+//           ),
+//         ),
+//         SizedBox(height: 12),
 
-        Text(
-          'You can add any widgets here: buttons, forms, lists, etc.',
-          style: TextStyle(color: Colors.white70),
-        ),
-        Spacer(),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-          onPressed: () => Navigator.pop(context),
-          child: Center(child: Text('Close')),
-        ),
-      ],
-    ),
-  );
-}
+//         Text(
+//           'You can add any widgets here: buttons, forms, lists, etc.',
+//           style: TextStyle(color: Colors.white70),
+//         ),
+//         Spacer(),
+//         ElevatedButton(
+//           style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+//           onPressed: () => Navigator.pop(context),
+//           child: Center(child: Text('Close')),
+//         ),
+//       ],
+//     ),
+//   );
+// }

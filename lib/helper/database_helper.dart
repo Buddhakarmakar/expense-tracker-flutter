@@ -12,6 +12,7 @@ class DatabaseHelper {
 
   static Database? _database;
   static List<ExpenseType> expenseTypeList = [];
+  static int? lastTransactionId;
   DatabaseHelper._init();
 
   // Get database instance
@@ -161,6 +162,7 @@ class DatabaseHelper {
 
     expenseTypeList = maps.map((map) => ExpenseType.fromMap(map)).toList();
 
+    print("fetchAllExpenses" + expenseTypeList[0].expenseTypeId.toString());
     return expenseTypeList;
   }
 
@@ -449,6 +451,54 @@ class DatabaseHelper {
     }
   }
 
+  Future<void> insertTransaction(TransactionModel transaction) async {
+    final db = await database;
+    try {
+      await db.insert(
+        'transactions',
+        transaction.toMap(),
+        // conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      print("Transaction Added successfully");
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<int> deleteLastTransactcion() async {
+    final db = await database;
+    try {
+      int deleteCount = await db.rawDelete('''
+      DELETE FROM transactions
+      WHERE transaction_id = (
+        SELECT transaction_id FROM transactions
+        ORDER BY transaction_id DESC
+        LIMIT 1)
+      ''');
+      return deleteCount;
+    } catch (e) {
+      print(e);
+      return 0;
+    }
+  }
+
+  Future<int> deleteTransaction(int transactionId) async {
+    final db = await database;
+    try {
+      int deleteCount = await db.rawDelete(
+        '''
+      DELETE FROM transactions
+      WHERE transaction_id =?
+      ''',
+        [transactionId],
+      );
+      return deleteCount;
+    } catch (e) {
+      print(e);
+      return 0;
+    }
+  }
+
   Future<List<TransactionWithType>> fetchTransactionsWithExpenseType() async {
     final db = await DatabaseHelper.instance.database;
 
@@ -468,7 +518,14 @@ class DatabaseHelper {
     FROM transactions t
     JOIN expense_types e ON t.expense_type_id = e.expense_type_id ORDER BY t.transaction_date desc
   ''');
+
     // await db.delete('transactions');
-    return result.map((json) => TransactionWithType.fromJson(json)).toList();
+
+    List<TransactionWithType> res =
+        result.map((json) => TransactionWithType.fromJson(json)).toList();
+
+    lastTransactionId = res[0].transactionId;
+
+    return res;
   }
 }

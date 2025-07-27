@@ -15,9 +15,9 @@ void main() async {
   await DatabaseHelper.instance.insertDefaultAccounts();
   await DatabaseHelper.instance.insertDefaultTransactions();
 
-  DatabaseHelper.instance.fetchAllExpenses().then(
-    (value) => {print(value.toString())},
-  );
+  // DatabaseHelper.instance.fetchAllExpenses().then(
+  //   (value) => {print(value.toString())},
+  // );
   runApp(const MyApp());
 }
 
@@ -45,14 +45,6 @@ class _FadeIndexedAppState extends State<FadeIndexedApp>
   int _currentIndex = 0;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  final List<Widget> _pages = [
-    HomePage(),
-    TransactionsPage(),
-    _PageWidget(title: "Stats", color: Colors.deepOrange),
-    _PageWidget(title: "Settings", color: Colors.green),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -86,7 +78,7 @@ class _FadeIndexedAppState extends State<FadeIndexedApp>
     return Scaffold(
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: IndexedStack(index: _currentIndex, children: _pages),
+        child: _getPage(_currentIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -124,5 +116,21 @@ class _PageWidget extends StatelessWidget {
       color: color.withOpacity(0.1),
       child: Center(child: Text(title, style: const TextStyle(fontSize: 28))),
     );
+  }
+}
+
+Widget _getPage(int index) {
+  switch (index) {
+    case 0:
+      return HomePage();
+    case 1:
+      return TransactionsPage(); // will rebuild every time
+    case 2:
+      return _PageWidget(title: "Stats", color: Colors.deepOrange);
+    case 3:
+      return _PageWidget(title: "Settings", color: Colors.green);
+
+    default:
+      return HomePage();
   }
 }
