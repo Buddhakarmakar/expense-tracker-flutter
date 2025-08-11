@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-
 class TransactionModel {
-  int transactionId;
+  int? transactionId; // Optional for new transactions
   final String transactionType; // Use an enum if needed
   final double amount;
   final String paymentMethod;
+  final String debitedFrom;
   final int accountId;
   final int expenseTypeId;
   final String? description;
@@ -14,10 +13,11 @@ class TransactionModel {
   DateTime? createdAt = DateTime.now();
 
   TransactionModel({
-    required this.transactionId,
+    this.transactionId,
     required this.transactionType,
     required this.amount,
     required this.paymentMethod,
+    required this.debitedFrom,
     required this.accountId,
     required this.expenseTypeId,
     this.description,
@@ -27,17 +27,13 @@ class TransactionModel {
     this.createdAt,
   });
 
-  setTransactionId(int id) {
-    transactionId = id;
-  }
-
   // Factory constructor for JSON deserialization
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
-      transactionId: json['transaction_id'],
       transactionType: json['transaction_type'],
       amount: json['amount'].toDouble(),
       paymentMethod: json['payment_method'],
+      debitedFrom: json['debited_from'],
       accountId: json['account_id'],
       expenseTypeId: json['expense_type_id'],
       description: json['description'],
@@ -45,6 +41,9 @@ class TransactionModel {
       transactionDate: DateTime.parse(json['transaction_date']),
       transactionTime: json['transaction_time'], // Or parse as needed
     );
+  }
+  setTransactionId(int id) {
+    transactionId = id;
   }
 
   // Method for JSON serialization
@@ -54,12 +53,14 @@ class TransactionModel {
       'transaction_type': transactionType,
       'amount': amount,
       'payment_method': paymentMethod,
+      'debited_from': debitedFrom,
       'account_id': accountId,
       'expense_type_id': expenseTypeId,
       'description': description,
       'paid_to': paidTo,
       'transaction_date': transactionDate.toIso8601String().split('T')[0],
       'transaction_time': transactionTime,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 
@@ -69,6 +70,7 @@ class TransactionModel {
       'amount': amount,
       'payment_method': paymentMethod,
       'account_id': accountId,
+      'debited_from': debitedFrom,
       'expense_type_id': expenseTypeId,
       'description': description,
       'paid_to': paidTo,
@@ -81,10 +83,10 @@ class TransactionModel {
 
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
     return TransactionModel(
-      transactionId: map['transaction_id'],
       transactionType: map['transaction_type'],
       amount: map['amount'],
       paymentMethod: map['payment_method'],
+      debitedFrom: map['debited_from'],
       accountId: map['account_id'],
       expenseTypeId: map['expense_type_id'],
       description: map['description'],

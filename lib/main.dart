@@ -1,24 +1,20 @@
-import 'package:expense_tracker/helper/database_helper.dart';
+import 'package:expense_tracker/helper/database_delete.dart';
 import 'package:expense_tracker/pages/home_page.dart';
 import 'package:expense_tracker/pages/transactions_page.dart';
+import 'package:expense_tracker/services/expense_service_database.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Create DB and tables
-  await DatabaseHelper.instance.database;
-
-  // Insert default expense types
-  await DatabaseHelper.instance.insertDefaultExpenseTypes();
-
-  await DatabaseHelper.instance.insertDefaultAccounts();
-  await DatabaseHelper.instance.insertDefaultTransactions();
-
-  // DatabaseHelper.instance.fetchAllExpenses().then(
-  //   (value) => {print(value.toString())},
-  // );
   runApp(const MyApp());
+
+  // Run inserts after UI starts
+  Future.microtask(() async {
+    await ExpenseServiceDatabase.instance.insertDefaultExpenseTypes();
+    await ExpenseServiceDatabase.instance.insertDefaultAccounts();
+    await ExpenseServiceDatabase.instance.insertDefaultTransactions();
+  });
 }
 
 class MyApp extends StatelessWidget {

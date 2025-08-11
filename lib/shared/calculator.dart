@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:expense_tracker/helper/database_helper.dart';
 import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
+import 'package:expense_tracker/services/expense_service_database.dart';
 import 'package:expense_tracker/shared/category_picker.dart';
 import 'package:expense_tracker/shared/date_picker.dart';
 import 'package:expense_tracker/shared/note_taker.dart';
@@ -12,12 +12,12 @@ import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
 class CalculatorBottomSheet extends StatefulWidget {
-  final ExpenseType expenseType;
+  final int expenseTypeId;
   final bool newTransaction;
   final TransactionWithType? transactionModel;
   const CalculatorBottomSheet({
     super.key,
-    required this.expenseType,
+    required this.expenseTypeId,
     this.newTransaction = true,
     this.transactionModel,
   });
@@ -29,7 +29,7 @@ class CalculatorBottomSheet extends StatefulWidget {
 class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   String _input = "0";
 
-  late ExpenseType selectedCategory;
+  ExpenseType? selectedCategory;
   String? transactionNote;
   String? paidToInput;
 
@@ -42,21 +42,26 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   @override
   void initState() {
     super.initState();
-    selectedCategory = widget.expenseType;
+    ExpenseServiceDatabase.instance
+        .fetchExpenseTypeById(widget.expenseTypeId)
+        .then((expenseType) {
+          if (expenseType != null) {
+            setState(() {
+              selectedCategory = expenseType;
+            });
+          }
+        });
     if (!widget.newTransaction) {
-      // DatabaseHelper.
+      // ExpenseServiceDatabase.
       _model = widget.transactionModel ?? TransactionWithType.withDefaults();
-
+      debugPrint("Transaction Model: ${_model.paymentMethod}");
       setModelValues(_model);
     }
   }
 
   void setModelValues(TransactionWithType model) {
     _input = model.amount.toString();
-    selectedCategory = ExpenseType(
-      expenseTypeId: model.expenseTypeId,
-      expenseTypeName: model.expenseTypeName,
-    );
+
     transactionNote = model.description;
     paidToInput = model.paidTo;
     selectedDate = DateTime.parse(model.transactionDate);
@@ -80,12 +85,12 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
 
   void onAdd() async {
     TransactionModel tm = TransactionModel(
-      transactionId: DatabaseHelper.lastTransactionId ?? 0 + 1,
       transactionType: "EXPENSE",
       amount: double.parse(_input.trim()),
       paymentMethod: paymentMethod,
+      debitedFrom: 'Default Account',
       accountId: 101,
-      expenseTypeId: selectedCategory.expenseTypeId,
+      expenseTypeId: widget.expenseTypeId,
       transactionDate: selectedDate,
       transactionTime: formatTransactionTime(selectedTime),
       description: transactionNote,
@@ -95,13 +100,11 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
 
     print("Insaide on add");
     if (!widget.newTransaction) {
-      print("Insaide on add !newTransaction");
-      tm.transactionId = _model.transactionId;
-
-      print("des---------" + (transactionNote ?? "null"));
-      await DatabaseHelper.instance.updateTransaction(tm);
+      tm.setTransactionId(_model.transactionId!);
+      debugPrint("Updating Transaction: ${tm.toJson()}");
+      await ExpenseServiceDatabase.instance.updateTransaction(tm);
       setState(() {
-        DatabaseHelper.instance.fetchTransactionsWithExpenseType();
+        ExpenseServiceDatabase.instance.fetchTransactionsWithExpenseType();
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -116,7 +119,8 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
         ),
       );
     } else {
-      await DatabaseHelper.instance.insertTransaction(tm);
+      await ExpenseServiceDatabase.instance.insertTransaction(tm);
+      debugPrint("new Transaction: ${tm.toJson()}");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -133,7 +137,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
             onPressed: () {
               // Undo logic here
               Future<int> deleteCount =
-                  DatabaseHelper.instance.deleteLastTransactcion();
+                  ExpenseServiceDatabase.instance.deleteLastTransactcion();
               deleteCount.then((value) {
                 if (value == 1) {
                   print("Delete Complete");
@@ -151,61 +155,74 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      color: Colors.blueGrey[800],
+      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        color: Colors.blueGrey[800],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple[300],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+              // Left button
+              SizedBox(
+                height: 40,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple[300],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  onPressed: () => _openpaymentMethodPicker(context),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        accountIcons[paymentMethod] ??
+                            'assets/expense_trcker_icons/money.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                      SizedBox(width: 5),
+                      Text(paymentMethod),
+                    ],
                   ),
                 ),
-                onPressed: () => _openpaymentMethodPicker(context),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      accountIcons[paymentMethod]!,
-                      height: 20,
-                      width: 20,
-                    ),
-                    SizedBox(width: 5),
-                    Text(paymentMethod),
-                  ],
-                ),
               ),
-              SizedBox(width: 10),
+
+              // Center text (takes available space)
               Expanded(
-                child: Align(
-                  alignment: Alignment.center,
+                child: Center(
                   child: AutoSizeText(
                     _input,
                     maxLines: 1,
-                    minFontSize: 18,
+                    minFontSize: 14,
                     style: const TextStyle(fontSize: 48, color: Colors.white),
                   ),
                 ),
               ),
-              SizedBox(width: 10),
+
+              // Right button
               if (_input != '0')
-                IconButton.outlined(
+                IconButton(
+                  icon: const Icon(Icons.backspace, color: Colors.white),
                   onPressed: () {
                     setState(() {
-                      _input = _input.substring(0, _input.length - 1);
-                      if (_input.isEmpty) {
-                        _input = '0';
+                      if (_input.length > 1) {
+                        _input = _input.substring(0, _input.length - 1);
+                      } else {
+                        _input = "0";
                       }
                     });
                   },
-                  icon: Icon(Icons.delete),
                 ),
+              if (_input == '0')
+                //space
+                const SizedBox(width: 48), // Placeholder for alignment
             ],
           ),
-
           const SizedBox(height: 24),
 
           Row(
@@ -213,7 +230,9 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
             children: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
+                  backgroundColor: colorFromHex(
+                    selectedCategory?.expenseTypeColor ?? '#FFFFFF',
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -221,13 +240,19 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                 onPressed: () => _openCategoryPicker(context),
                 child: Row(
                   children: [
-                    Image.asset(
-                      expenseIconList[selectedCategory.expenseTypeName]!,
-                      height: 20,
-                      width: 20,
+                    Icon(
+                      iconFromDB(
+                        selectedCategory?.iconCodePoint ??
+                            Icons.shopping_cart.codePoint,
+                        selectedCategory?.iconFontFaily ?? 'MaterialIcons',
+                      ),
+                      color: colorFromHex('#FFFFFF'),
+                      size: 20,
                     ),
                     SizedBox(width: 5),
-                    Text(selectedCategory.expenseTypeName),
+                    Text(
+                      selectedCategory?.expenseTypeName ?? 'Select Category',
+                    ),
                   ],
                 ),
               ),
@@ -279,34 +304,31 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
               ),
             ],
           ),
+
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+          Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             children: [
-              ...[
-                '7',
-                '8',
-                '9',
-                // '÷',
-                '4',
-                '5',
-                '6',
-                // '×',
-                '1',
-                '2',
-                '3',
-                // '−',
-                '.',
-                '0',
-                'add',
-                // '+',
-              ].map((val) => CalculatorButton(val, onPressed, onAdd)),
+              _buildRow(['7', '8', '9']),
+              _buildRow(['4', '5', '6']),
+              _buildRow(['1', '2', '3']),
+              _buildRow(['.', '0', 'add']),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  TableRow _buildRow(List<String> values) {
+    return TableRow(
+      children:
+          values.map((val) {
+            return Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: CalculatorButton(val, onPressed, onAdd),
+            );
+          }).toList(),
     );
   }
 
@@ -315,7 +337,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
       context: context,
       builder: (context) {
         return CategoryPicker(
-          categories: DatabaseHelper.expenseTypeList,
+          categories: ExpenseServiceDatabase.expenseTypeList,
           onCategorySelected: (selected) {
             setState(() {
               selectedCategory = selected;
@@ -331,7 +353,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
       context: context,
       builder: (context) {
         return PaymentMethodPicker(
-          paymentMethods: DatabaseHelper.accountList,
+          paymentMethods: ExpenseServiceDatabase.accountList,
           onPaymentMethodSelected: (selected) {
             setState(() {
               paymentMethod = selected;
@@ -384,7 +406,7 @@ class CalculatorButton extends StatelessWidget {
 }
 
 TimeOfDay parseTimeOfDay(String timeString) {
-  print("parseTimeOfDay ----------" + timeString);
+  print("parseTimeOfDay ----------$timeString");
   final parts = timeString.split(':');
   final hour = int.parse(parts[0]);
   final minute = int.parse(parts[1]);

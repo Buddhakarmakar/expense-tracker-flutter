@@ -1,22 +1,41 @@
-final Map<String, String> expenseIconList = {
-  'Food': 'assets/expense_trcker_icons/curry.png',
-  'Rent': 'assets/expense_trcker_icons/rent.png',
-  'Groceries': 'assets/expense_trcker_icons/grocery-cart.png',
-  'Restaurants': 'assets/expense_trcker_icons/dinner-table.png',
-  'Education': 'assets/expense_trcker_icons/education.png',
-  'Subscriptions': 'assets/expense_trcker_icons/membership.png',
-  'Bills': 'assets/expense_trcker_icons/bill.png',
-  'Gifts': 'assets/expense_trcker_icons/gift.png',
-  'Maintenance': 'assets/expense_trcker_icons/estate.png',
-  'Bike Expenses': 'assets/expense_trcker_icons/utility.png',
-  'Others': 'assets/expense_trcker_icons/other.png',
-  'Transport': 'assets/expense_trcker_icons/bus.png',
-  'Vacations': 'assets/expense_trcker_icons/beach.png',
-};
+import 'package:flutter/material.dart';
+
+final path = 'assets/expense_trcker_icons/';
+
+// final Map<String, String> expenseIconList = {
+//   'Food': '${path}curry.png',
+//   'Rent': '${path}rent.png',
+//   'Groceries': '${path}grocery-cart.png',
+//   'Restaurants': '${path}dinner-table.png',
+//   'Education': '${path}education.png',
+//   'Subscriptions': '${path}membership.png',
+//   'Bills': '${path}bill.png',
+//   'Gifts': '${path}gift.png',
+//   'Maintenance': '${path}estate.png',
+//   'Bike Expenses': '${path}utility.png',
+//   'Others': '${path}other.png',
+//   'Transport': '${path}bus.png',
+//   'Vacations': '${path}beach.png',
+// };
 
 final Map<String, String> accountIcons = {
-  'CASH': 'assets/expense_trcker_icons/money.png',
-  'UPI': 'assets/expense_trcker_icons/icons8-bhim-48.png',
-  'Online': 'assets/expense_trcker_icons/cashless-payment.png',
-  'CARD': 'assets/expense_trcker_icons/contactless.png',
+  'CASH': '${path}money.png',
+  'UPI': '${path}icons8-bhim-48.png',
+  'Online': '${path}cashless-payment.png',
+  'CARD': '${path}contactless.png',
 };
+IconData iconFromDB(int codePoint, String fontFamily) {
+  return IconData(codePoint, fontFamily: fontFamily);
+}
+
+Color colorFromHex(String hex) {
+  return Color(int.parse(hex.substring(1), radix: 16) + 0xFF000000);
+}
+
+Map<String, dynamic> iconToDB(IconData icon) {
+  return {'codePoint': icon.codePoint, 'fontFamily': icon.fontFamily};
+}
+
+String colorToHex(Color color) {
+  return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+}

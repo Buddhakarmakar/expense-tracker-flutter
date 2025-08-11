@@ -2,26 +2,34 @@ import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:flutter/material.dart';
 
 class TransactionWithType {
-  final int transactionId;
+  final int? transactionId;
   final String transactionType;
   final double amount;
   final String paymentMethod;
+  final String debitedFrom;
   final int accountId;
   final int expenseTypeId;
   final String expenseTypeName;
+  final int iconCodePoint; // Use int for code point
+  String? iconFontFaily; // Use string for font family
+  final String expenseTypeColor; // Optional color field
   final String? description;
   final String? paidTo;
   final String transactionDate;
   final String transactionTime;
 
   TransactionWithType({
-    required this.transactionId,
+    this.transactionId,
     required this.transactionType,
     required this.amount,
     required this.paymentMethod,
+    required this.debitedFrom,
     required this.accountId,
     required this.expenseTypeId,
     required this.expenseTypeName,
+    required this.iconCodePoint,
+    this.iconFontFaily = 'MaterialIcons',
+    required this.expenseTypeColor,
     this.description,
     this.paidTo,
     required this.transactionDate,
@@ -34,9 +42,13 @@ class TransactionWithType {
       transactionType: json['transaction_type'],
       amount: json['amount'],
       paymentMethod: json['payment_method'],
+      debitedFrom: json['debited_from'],
       accountId: json['account_id'],
       expenseTypeId: json['expense_type_id'],
       expenseTypeName: json['expense_type_name'],
+      iconCodePoint: json['icon_code_point'],
+      iconFontFaily: json['icon_font_family'] ?? 'MaterialIcons',
+      expenseTypeColor: json['expense_type_color'],
       description: json['description'],
       paidTo: json['paid_to'],
       transactionDate: json['transaction_date'],
@@ -45,10 +57,10 @@ class TransactionWithType {
   }
   TransactionModel toTransactionModel() {
     return TransactionModel(
-      transactionId: transactionId,
       transactionType: transactionType,
       amount: amount,
       paymentMethod: paymentMethod,
+      debitedFrom: debitedFrom,
       accountId: accountId,
       expenseTypeId: expenseTypeId,
       transactionDate: DateTime.parse(transactionDate),
@@ -76,13 +88,33 @@ class TransactionWithType {
       transactionType: transactionType,
       amount: amount,
       paymentMethod: paymentMethod,
+      debitedFrom: 'Default Account',
       accountId: accountId,
       expenseTypeId: expenseTypeId,
       expenseTypeName: expenseTypeName,
+      iconCodePoint: Icons.money.codePoint,
+      iconFontFaily: Icons.money.fontFamily ?? 'MaterialIcons',
+      expenseTypeColor: '#FF7043', // Default color, can be changed later
       description: description ?? '',
       paidTo: paidTo ?? '',
       transactionDate: transactionDate.toString(),
       transactionTime: transactionTime ?? TimeOfDay.now().toString(),
     );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'transaction_id': transactionId,
+      'transaction_type': transactionType,
+      'amount': amount,
+      'payment_method': paymentMethod,
+      'account_id': accountId,
+      'expense_type_id': expenseTypeId,
+      'expense_type_name': expenseTypeName,
+      'description': description,
+      'paid_to': paidTo,
+      'transaction_date': transactionDate, // for consistency
+      'transaction_time':
+          transactionTime, // assuming it's already in string format
+    };
   }
 }

@@ -1,8 +1,10 @@
-import 'package:expense_tracker/helper/database_helper.dart';
-import 'package:expense_tracker/models/expense_type.dart';
+import 'package:expense_tracker/helper/database_delete.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
-import 'package:expense_tracker/shared/calcutaor.dart';
+import 'package:expense_tracker/services/expense_service_database.dart';
+import 'package:expense_tracker/shared/calculator.dart';
 import 'package:expense_tracker/utils/constant.dart';
+import 'package:expense_tracker/utils/expense_icon_list.dart';
+import 'package:expense_tracker/utils/util_functions.dart';
 import 'package:flutter/material.dart';
 
 class TransactionsPage extends StatefulWidget {
@@ -19,7 +21,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   void initState() {
     super.initState();
-    _transactions = DatabaseHelper.instance.fetchTransactionsWithExpenseType();
+
+    _transactions =
+        ExpenseServiceDatabase.instance.fetchTransactionsWithExpenseType();
+    // deleteDatabaseFile();
+    debugPrint("Transactions Page Initialized");
+    // debugPrint("Transactions: ${_transactions.toJson()}");
+    _transactions.then((value) {
+      debugPrint("Fetched Transactions: ${value.length}");
+      // debugPrint("Transactions: ${value[0].toJson()}");
+    });
   }
 
   @override
@@ -38,6 +49,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
           children: [
             _textBox(_controller),
             SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                _transactions.then((value) {
+                  exportTransactionsToJsonFile(value);
+                });
+              },
+              child: Text('Export'),
+            ),
             FutureBuilder<List<TransactionWithType>>(
               future: _transactions,
               builder: (context, snapshot) {
@@ -64,7 +83,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         // ),
                         child: InkWell(
                           onTap: () {
-                            print('InkWell tapped!');
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -75,134 +93,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               ),
                               backgroundColor: Colors.blueGrey[800],
                               builder:
-                                  (context) => Container(
-                                    height: 200,
-                                    child: ListView(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.pinkAccent,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Image.asset(
-                                                      expenseIconList[transactions[index]
-                                                          .expenseTypeName]!,
-                                                      height: 20,
-                                                      width: 20,
-                                                    ),
-                                                    SizedBox(width: 5),
-                                                    Text(
-                                                      transactions[index]
-                                                          .expenseTypeName,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Text(
-                                                transactions[index].amount
-                                                    .toString(),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(height: 12),
-                                        Container(
-                                          height: 1,
-                                          color: Colors.blueGrey,
-                                        ),
-
-                                        ListTile(
-                                          title: Text('Update '),
-                                          leading: Icon(Icons.edit_outlined),
-                                          onTap: () async {
-                                            Navigator.pop(context);
-                                            showModalBottomSheet(
-                                              context: context,
-                                              isScrollControlled: true,
-                                              shape:
-                                                  const RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.vertical(
-                                                          top: Radius.circular(
-                                                            24,
-                                                          ),
-                                                        ),
-                                                  ),
-                                              builder:
-                                                  (
-                                                    context,
-                                                  ) => CalculatorBottomSheet(
-                                                    expenseType: ExpenseType(
-                                                      expenseTypeId:
-                                                          transactions[index]
-                                                              .expenseTypeId,
-                                                      expenseTypeName:
-                                                          transactions[index]
-                                                              .expenseTypeName,
-                                                    ),
-                                                    newTransaction: false,
-                                                    transactionModel:
-                                                        transactions[index],
-                                                  ),
-                                            );
-                                          },
-                                        ),
-                                        SizedBox(height: 12),
-                                        Container(
-                                          height: 1,
-                                          color: Colors.blueGrey,
-                                        ),
-                                        ListTile(
-                                          title: Text('Delete '),
-                                          leading: Icon(Icons.delete),
-                                          onTap: () async {
-                                            Navigator.pop(context);
-                                            await DatabaseHelper.instance
-                                                .deleteTransaction(
-                                                  transactions[index]
-                                                      .transactionId,
-                                                );
-                                            setState(() {
-                                              _transactions =
-                                                  DatabaseHelper.instance
-                                                      .fetchTransactionsWithExpenseType();
-                                            });
-                                            if (!mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Transaction Deleted!',
-                                                ),
-                                                duration: Duration(seconds: 4),
-                                                backgroundColor:
-                                                    Colors.redAccent,
-                                                behavior:
-                                                    SnackBarBehavior.floating,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
+                                  (context) => showTransactionBottomSheet(
+                                    transactions,
+                                    index,
+                                    context,
                                   ),
                             );
                           },
@@ -228,19 +122,39 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.pinkAccent,
+                                            color: colorFromHex(
+                                              transactions[index]
+                                                  .expenseTypeColor,
+                                            ),
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
                                           ),
-                                          child: Text(
-                                            transactions[index].expenseTypeName
-                                                .toString(),
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                iconFromDB(
+                                                  transactions[index]
+                                                      .iconCodePoint,
+                                                  transactions[index]
+                                                      .iconFontFaily!,
+                                                ),
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                              SizedBox(width: 5),
+                                              Text(
+                                                transactions[index]
+                                                    .expenseTypeName
+                                                    .toString(),
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -304,6 +218,116 @@ class _TransactionsPageState extends State<TransactionsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  SizedBox showTransactionBottomSheet(
+    List<TransactionWithType> transactions,
+    int index,
+    BuildContext context,
+  ) {
+    return SizedBox(
+      height: 200,
+      child: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: colorFromHex(transactions[index].expenseTypeColor),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        iconFromDB(
+                          transactions[index].iconCodePoint,
+                          transactions[index].iconFontFaily ?? 'MaterialIcons',
+                        ),
+                        color: Colors.white,
+                        size: 20,
+                      ),
+
+                      SizedBox(width: 5),
+                      Text(
+                        transactions[index].expenseTypeName,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Text(
+                    transactions[index].amount.toString(),
+                    style: TextStyle(
+                      color: Colors.pinkAccent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 12),
+          Container(height: 1, color: Colors.blueGrey),
+
+          ListTile(
+            title: Text('Update '),
+            leading: Icon(Icons.edit_outlined),
+            onTap: () async {
+              Navigator.pop(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder:
+                    (context) => CalculatorBottomSheet(
+                      expenseTypeId: transactions[index].expenseTypeId,
+                      newTransaction: false,
+                      transactionModel: transactions[index],
+                    ),
+              );
+            },
+          ),
+          SizedBox(height: 12),
+          Container(height: 1, color: Colors.blueGrey),
+          ListTile(
+            title: Text('Delete '),
+            leading: Icon(Icons.delete),
+            onTap: () async {
+              Navigator.pop(context);
+              await ExpenseServiceDatabase.instance.deleteTransaction(
+                transactions[index].transactionId ?? 0,
+              );
+              setState(() {
+                _transactions =
+                    ExpenseServiceDatabase.instance
+                        .fetchTransactionsWithExpenseType();
+              });
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Transaction Deleted!'),
+                  duration: Duration(seconds: 4),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
