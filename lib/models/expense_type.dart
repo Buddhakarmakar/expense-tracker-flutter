@@ -15,6 +15,7 @@ class ExpenseType {
 
   factory ExpenseType.fromJson(Map<String, dynamic> json) {
     return ExpenseType(
+      expenseTypeId: json['expense_type_id'],
       expenseTypeName: json['expense_type_name'],
       expenseTypeColor: json['expense_type_color'],
       iconCodePoint: json['icon_code_point'],
