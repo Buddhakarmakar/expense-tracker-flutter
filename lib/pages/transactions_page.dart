@@ -3,7 +3,6 @@ import 'package:expense_tracker/models/transaction_with_type.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
 import 'package:expense_tracker/shared/calculator.dart';
 import 'package:expense_tracker/utils/constant.dart';
-import 'package:expense_tracker/utils/expense_icon_list.dart';
 import 'package:expense_tracker/utils/util_functions.dart';
 import 'package:flutter/material.dart';
 
