@@ -47,7 +47,7 @@ class SqlDatabaseHelper {
 
     await db.execute('''
       CREATE TABLE expense_types (
-        expense_type_id INTEGER PRIMARY KEY,
+        expense_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
         expense_type_name TEXT NOT NULL,
         icon_code_point INTEGER NOT NULL,
         icon_font_family TEXT NOT NULL,
@@ -72,8 +72,9 @@ class SqlDatabaseHelper {
         transaction_date TEXT,
         transaction_time TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (account_id) REFERENCES accounts(account_id),
-        FOREIGN KEY (expense_type_id) REFERENCES expense_types(expense_type_id)
+        FOREIGN KEY (account_id) REFERENCES accounts(account_id) ON DELETE SET NULL,
+        FOREIGN KEY (expense_type_id) REFERENCES expense_types(expense_type_id) ON DELETE SET NULL
+
       )
     ''');
     await db.execute(

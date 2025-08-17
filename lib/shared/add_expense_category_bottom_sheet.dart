@@ -35,7 +35,20 @@ class _AddExpenseCategoryBottomSheetState
         widget.expenseType!.iconCodePoint,
         widget.expenseType!.iconFontFaily ?? 'MaterialIcons',
       );
-      titleController.text = widget.expenseType!.expenseTypeName;
+      titleController.text = widget.expenseType?.expenseTypeName ?? 'Untitled';
+    } else {
+      selectedColor =
+          widget.expenseType?.expenseTypeColor != null
+              ? colorFromHex(widget.expenseType!.expenseTypeColor)
+              : Colors.blueGrey[700];
+      selectedIcon =
+          widget.expenseType?.iconCodePoint != null
+              ? iconFromDB(
+                widget.expenseType!.iconCodePoint,
+                widget.expenseType!.iconFontFaily ?? 'MaterialIcons',
+              )
+              : Icons.category;
+      titleController.text = widget.expenseType?.expenseTypeName ?? 'Untitled';
     }
   }
 
@@ -74,14 +87,35 @@ class _AddExpenseCategoryBottomSheetState
                   child: ElevatedButton(
                     onPressed: () async {
                       // Logic to save the new category can be implemented here
+                      final iconData = iconToDB(selectedIcon!);
+                      final fontFamily =
+                          iconData['fontFamily'] ?? 'MaterialIcons';
 
+                      final newExpenseType = ExpenseType(
+                        expenseTypeName:
+                            titleController.text.trim() == ""
+                                ? 'Untitled'
+                                : titleController.text.trim(),
+                        expenseTypeColor: colorToHex(selectedColor!),
+                        iconCodePoint: iconData['codePoint'],
+                        iconFontFaily: fontFamily,
+                      );
+                      debugPrint(newExpenseType.toMap().toString());
                       if (widget.isNewCategory!) {
                         // Create a new ExpenseType object
-                        final iconData = iconToDB(selectedIcon!);
-                        final fontFamily =
-                            iconData['fontFamily'] ?? 'MaterialIcons';
 
-                        final newExpenseType = ExpenseType(
+                        final value = await ExpenseServiceDatabase.instance
+                            .insertExpenseType(newExpenseType);
+
+                        debugPrint('New category added with id = $value');
+                        if (!context.mounted) return;
+                        //
+                        Navigator.of(context).pop(value);
+
+                        //
+                      } else {
+                        final expneseType = ExpenseType(
+                          expenseTypeId: widget.expenseType!.expenseTypeId,
                           expenseTypeName:
                               titleController.text.trim() == ""
                                   ? 'Untitled'
@@ -90,13 +124,11 @@ class _AddExpenseCategoryBottomSheetState
                           iconCodePoint: iconData['codePoint'],
                           iconFontFaily: fontFamily,
                         );
-                        debugPrint(newExpenseType.toMap().toString());
-
                         final value = await ExpenseServiceDatabase.instance
-                            .insertExpenseType(newExpenseType);
-
+                            .updateExpenseType(expneseType);
+                        debugPrint('Updated category  with id = $value');
+                        if (!context.mounted) return;
                         Navigator.of(context).pop(value);
-                        if (!mounted) return;
                       }
                     },
                     child: Text(widget.isNewCategory! ? 'Add' : 'Update'),

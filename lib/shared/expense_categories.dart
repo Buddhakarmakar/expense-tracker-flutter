@@ -5,21 +5,41 @@ import 'package:expense_tracker/shared/expense_categories_bottomsheet.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
-class ExpenseCategories extends StatelessWidget {
+class ExpenseCategories extends StatefulWidget {
   final bool? isReorderable;
   final bool? isEditable;
+  final void Function(VoidCallback reload)? onInit;
   const ExpenseCategories({
     super.key,
     this.isReorderable = false,
     this.isEditable = false,
+    this.onInit,
   });
+
+  @override
+  State<ExpenseCategories> createState() => _ExpenseCategoriesState();
+}
+
+class _ExpenseCategoriesState extends State<ExpenseCategories> {
+  Future<List<ExpenseType>>? expenseTypes;
+
+  @override
+  void initState() {
+    super.initState();
+    expenseTypes = ExpenseServiceDatabase.instance.fetchAllExpenses();
+    widget.onInit?.call(reload); // expose reload function
+  }
+
+  void reload() {
+    setState(() {
+      expenseTypes = ExpenseServiceDatabase.instance.fetchAllExpenses();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<ExpenseType>>(
-      future:
-          ExpenseServiceDatabase.instance
-              .fetchAllExpenses(), // Your async function
+      future: expenseTypes, // Your async function
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -54,15 +74,25 @@ class ExpenseCategories extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: InkWell(
-                  onTap: () {
-                    if (isEditable!) {
-                      showModalBottomSheet(
+                  onTap: () async {
+                    if (widget.isEditable!) {
+                      final value = await showModalBottomSheet(
                         context: context,
                         backgroundColor: Colors.blueGrey[800],
                         builder: (context) {
                           return expenseCategoriesBottomSheet(expense, context);
                         },
                       );
+                      debugPrint(
+                        "ExpensebottomSheet close with value = $value",
+                      );
+                      if (value != null && value > 0) {
+                        setState(() {
+                          expenseTypes =
+                              ExpenseServiceDatabase.instance
+                                  .fetchAllExpenses();
+                        });
+                      }
                     } else {
                       showModalBottomSheet(
                         context: context,

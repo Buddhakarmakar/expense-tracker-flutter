@@ -11,6 +11,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late VoidCallback _reloadCategories;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -36,13 +37,18 @@ class _HomePageState extends State<HomePage> {
                   right: 0,
                   child: IconButton(
                     icon: Icon(Icons.edit, color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final res = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ManageCategories(),
                         ),
                       );
+
+                      debugPrint('Manage Categories returned: $res');
+                      if (res != null && res is bool && res) {
+                        _reloadCategories(); // reload categories if needed
+                      }
                     },
                   ),
                 ),
@@ -59,7 +65,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(height: 16),
-            ExpenseCategories(),
+            ExpenseCategories(onInit: (reload) => _reloadCategories = reload),
             SizedBox(height: 24),
             Text(
               "Accounts",

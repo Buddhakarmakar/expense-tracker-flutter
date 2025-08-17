@@ -3,7 +3,6 @@ import 'package:expense_tracker/models/account.dart';
 import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
@@ -21,7 +20,7 @@ class ExpenseServiceDatabase {
     final prefs = await SharedPreferences.getInstance();
     final isFirstRun = prefs.getBool('isAccountsInserted') ?? true;
 
-    if (isFirstRun) {
+    if (!isFirstRun) {
       final db = await _dbHelper.database;
       List<Account> types = [
         Account(accountId: 101, accountName: "CASH", accountBalance: 1000.0),
@@ -61,7 +60,7 @@ class ExpenseServiceDatabase {
     final prefs = await SharedPreferences.getInstance();
     final isFirstRun = prefs.getBool('isExpenseTypeInserted') ?? true;
 
-    if (isFirstRun) {
+    if (!isFirstRun) {
       final db = await _dbHelper.database;
       final defaultExpenseTypes = [
         {
@@ -116,15 +115,35 @@ class ExpenseServiceDatabase {
 
   // == Update an expense type in the database
 
-  Future<int> updateExpenseType(Map<String, dynamic> row) async {
-    final db = await _dbHelper.database;
-    int id = row['id'];
-    return await db.update(
-      'expense_types',
-      row,
-      where: 'expense_type_id = ?',
-      whereArgs: [id],
-    );
+  Future<int> updateExpenseType(ExpenseType expenseType) async {
+    try {
+      final db = await _dbHelper.database;
+      debugPrint("Updating  expense type : ${expenseType.toJson().toString()}");
+      return await db.update(
+        'expense_types',
+        expenseType.toMap(),
+        where: 'expense_type_id = ?',
+        whereArgs: [expenseType.expenseTypeId],
+      );
+    } catch (e) {
+      debugPrint("Error fetching expense types: $e");
+      return -1;
+    }
+  }
+
+  // == Delete an expense type from the database
+  Future<int> deleteExpenseType(int id) async {
+    try {
+      final db = await _dbHelper.database;
+      return await db.delete(
+        'expense_types',
+        where: 'expense_type_id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint("Error deleting expense type: $e");
+      return -1; // Indicate failure
+    }
   }
 
   // Fetch an expense type by ID
@@ -144,16 +163,11 @@ class ExpenseServiceDatabase {
     }
   }
 
-  Future<int> deleteExpense(int id) async {
-    final db = await _dbHelper.database;
-    return await db.delete('expense_types', where: 'id = ?', whereArgs: [id]);
-  }
-
   Future<void> insertDefaultTransactions() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirstRun = prefs.getBool('isTransactionsInserted') ?? true;
 
-    if (isFirstRun) {
+    if (!isFirstRun) {
       final db = await _dbHelper.database;
       final List<TransactionModel> transactions = [];
 

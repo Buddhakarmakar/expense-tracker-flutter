@@ -312,7 +312,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     ExpenseServiceDatabase.instance
                         .fetchTransactionsWithExpenseType();
               });
-              if (!mounted) return;
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Transaction Deleted!'),

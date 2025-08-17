@@ -11,6 +11,7 @@ class ManageCategories extends StatefulWidget {
 }
 
 class _ManageCategoriesState extends State<ManageCategories> {
+  late VoidCallback _reloadCategories;
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -18,36 +19,47 @@ class _ManageCategoriesState extends State<ManageCategories> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Manage Categories'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context, true); // ✅ send back signal
+            },
+          ),
           backgroundColor: Colors.blueGrey[900],
           centerTitle: true,
           actions: [
             IconButton(
               icon: const Icon(Icons.add),
               color: Colors.white,
-              onPressed: () {
+              onPressed: () async {
                 // Logic to add a new category can be implemented here
-                showModalBottomSheet(
+                final val = await showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.blueGrey[800],
                   builder: (context) {
                     return AddExpenseCategoryBottomSheet(isNewCategory: true);
                   },
-                ).then((value) {
-                  debugPrint('New category added $value');
-                  if (!mounted) return;
-                  if (value > 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Category added successfully'),
-                      ),
-                    );
-                  } else {
-                    debugPrint('Failed to add new category');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to add category')),
-                    );
-                  }
-                });
+                );
+
+                if (val != null && val > 0) {
+                  debugPrint('New category added with id = $val');
+
+                  _reloadCategories(); // reload categories after adding
+
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Category added successfully'),
+                    ),
+                  );
+                } else {
+                  debugPrint('Failed to add new category');
+                  if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to add category')),
+                  );
+                }
               },
             ),
           ],
@@ -61,6 +73,9 @@ class _ManageCategoriesState extends State<ManageCategories> {
               padding: const EdgeInsets.all(16.0),
               child: ExpenseCategories(
                 isEditable: true,
+                onInit: (reload) {
+                  _reloadCategories = reload;
+                },
               ), // Displaying the expense categories
             ),
             Container(
