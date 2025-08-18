@@ -84,6 +84,7 @@ SizedBox accountsOnTapBottomSheet(Account account, BuildContext context) {
                         ? 'Account added successfully'
                         : 'Failed to add account',
                   ),
+                  duration: Duration(microseconds: 200),
                 ),
               );
             }

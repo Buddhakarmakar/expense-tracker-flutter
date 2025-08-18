@@ -3,6 +3,7 @@ import 'package:expense_tracker/pages/stats_page.dart';
 import 'package:expense_tracker/pages/transactions_page.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,9 +12,14 @@ void main() async {
 
   // Run inserts after UI starts
   Future.microtask(() async {
-    await ExpenseServiceDatabase.instance.insertDefaultExpenseTypes();
-    await ExpenseServiceDatabase.instance.insertDefaultAccounts();
-    await ExpenseServiceDatabase.instance.insertDefaultTransactions();
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstRun = prefs.getBool('isFirstRun') ?? true;
+    if (isFirstRun) {
+      await ExpenseServiceDatabase.instance.insertDefaultExpenseTypes();
+      await ExpenseServiceDatabase.instance.insertDefaultAccounts();
+      await ExpenseServiceDatabase.instance.insertDefaultTransactions();
+      await prefs.setBool('isFirstRun', false);
+    }
   });
 }
 

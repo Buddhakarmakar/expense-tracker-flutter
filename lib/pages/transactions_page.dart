@@ -203,11 +203,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                     Text(
                                       transactions[index].paymentMethod,
                                       style: TextStyle(
-                                        color: colorFromHex(
-                                          AccountTypeX.fromName(
-                                            transactions[index].accountType,
-                                          ).color,
-                                        ),
+                                        color: Colors.white,
                                         fontSize: 10,
                                       ),
                                     ),
@@ -324,7 +320,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Transaction Deleted!'),
-                  duration: Duration(seconds: 4),
+                  duration: Duration(seconds: 1),
                   backgroundColor: Colors.redAccent,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(

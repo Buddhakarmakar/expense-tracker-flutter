@@ -52,11 +52,24 @@ class _ManageCategoriesState extends State<ManageCategories>
               onPressed: () async {
                 // Logic to add a new category can be implemented here
                 if (_tabController.index == 0) {
-                  final val = await showModalBottomSheet(
+                  final val = await await showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true, // 👈 important
+                    isDismissible: false, // ❌ disables tap outside to dismiss
+                    enableDrag: false, // ❌ disables swipe to dismiss
                     backgroundColor: Colors.blueGrey[800],
                     builder: (context) {
-                      return AddExpenseCategoryBottomSheet(isNewCategory: true);
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom:
+                              MediaQuery.of(
+                                context,
+                              ).viewInsets.bottom, // 👈 pushes above keyboard
+                        ),
+                        child: AddExpenseCategoryBottomSheet(
+                          isNewCategory: true,
+                        ),
+                      );
                     },
                   );
 
@@ -69,15 +82,21 @@ class _ManageCategoriesState extends State<ManageCategories>
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Category added successfully'),
+                        duration: Duration(microseconds: 200),
                       ),
                     );
                   } else {
                     debugPrint('Failed to add new category');
                     if (!context.mounted) return;
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to add category')),
-                    );
+                    if (val != null && val < 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to add category'),
+                          duration: Duration(microseconds: 200),
+                        ),
+                      );
+                    }
                   }
                 } else {
                   final value = await showAccountDialog(context);
@@ -101,6 +120,7 @@ class _ManageCategoriesState extends State<ManageCategories>
                               ? 'Account added successfully'
                               : 'Failed to add account',
                         ),
+                        duration: Duration(microseconds: 200),
                       ),
                     );
                   }

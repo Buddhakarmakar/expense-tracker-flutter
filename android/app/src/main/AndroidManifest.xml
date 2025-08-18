@@ -2,7 +2,7 @@
     <application
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:label="expense_tracker"
+        android:label="MyExpenses"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -94,6 +94,7 @@ SizedBox expenseCategoriesBottomSheet(
                   content: Text(
                     'Expense type ${expenseType.expenseTypeName} deleted successfully',
                   ),
+                  duration: Duration(microseconds: 200),
                 ),
               );
             } else {

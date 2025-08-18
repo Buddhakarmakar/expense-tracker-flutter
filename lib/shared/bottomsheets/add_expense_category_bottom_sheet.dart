@@ -35,7 +35,7 @@ class _AddExpenseCategoryBottomSheetState
         widget.expenseType!.iconCodePoint,
         widget.expenseType!.iconFontFaily ?? 'MaterialIcons',
       );
-      titleController.text = widget.expenseType?.expenseTypeName ?? 'Untitled';
+      titleController.text = widget.expenseType?.expenseTypeName ?? '';
     } else {
       selectedColor =
           widget.expenseType?.expenseTypeColor != null
@@ -48,7 +48,7 @@ class _AddExpenseCategoryBottomSheetState
                 widget.expenseType!.iconFontFaily ?? 'MaterialIcons',
               )
               : Icons.category;
-      titleController.text = widget.expenseType?.expenseTypeName ?? 'Untitled';
+      titleController.text = '';
     }
   }
 

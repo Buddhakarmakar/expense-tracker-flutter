@@ -18,33 +18,26 @@ class ExpenseServiceDatabase {
 
   // Optional: Preload accounts
   Future<void> insertDefaultAccounts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isFirstRun = prefs.getBool('isAccountsInserted') ?? true;
+    final db = await _dbHelper.database;
+    List<Account> types = [
+      Account(
+        accountId: 101,
+        accountName: "CASH",
+        accountBalance: 1000.0,
+        accountType: 'CASH',
+      ),
+      // Account(accountId: 102, accountName: "Online", accountBalance: 1000.0),
+      // Account(accountId: 103, accountName: "UPI", accountBalance: 1000.0),
+      // Account(accountId: 104, accountName: "CARD", accountBalance: 1000.0),
+    ];
 
-    if (!isFirstRun) {
-      final db = await _dbHelper.database;
-      List<Account> types = [
-        Account(
-          accountId: 101,
-          accountName: "CASH",
-          accountBalance: 1000.0,
-          accountType: 'CASH',
-        ),
-        // Account(accountId: 102, accountName: "Online", accountBalance: 1000.0),
-        // Account(accountId: 103, accountName: "UPI", accountBalance: 1000.0),
-        // Account(accountId: 104, accountName: "CARD", accountBalance: 1000.0),
-      ];
-
-      for (var type in types) {
-        await db.insert(
-          'accounts',
-          type.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
-      }
+    for (var type in types) {
+      await db.insert(
+        'accounts',
+        type.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
-    // Mark setup as complete
-    await prefs.setBool('isAccountsInserted', false);
   }
 
   // Insert an account into the database
@@ -107,29 +100,88 @@ class ExpenseServiceDatabase {
 
   // Optional: Preload expense types
   Future<void> insertDefaultExpenseTypes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isFirstRun = prefs.getBool('isExpenseTypeInserted') ?? true;
-
-    if (!isFirstRun) {
-      final db = await _dbHelper.database;
-      final defaultExpenseTypes = [
-        {
-          'expense_type_name': 'Shopping',
-          'icon_code_point': Icons.shopping_cart.codePoint,
-          'icon_font_family': Icons.shopping_cart.fontFamily,
-          'expense_type_color': '#FF7043',
-        },
-      ];
-      for (var type in defaultExpenseTypes) {
-        await db.insert(
-          'expense_types',
-          type,
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
-      }
+    final db = await _dbHelper.database;
+    final defaultExpenseTypes = [
+      {
+        'expense_type_name': 'Shopping',
+        'icon_code_point': Icons.shopping_cart.codePoint,
+        'icon_font_family': Icons.shopping_cart.fontFamily,
+        'expense_type_color': '#FF7043',
+      },
+      {
+        'expense_type_name': 'Groceries',
+        'icon_code_point': Icons.local_grocery_store.codePoint,
+        'icon_font_family': Icons.shopping_basket.fontFamily,
+        'expense_type_color': '#4CAF50', // Green
+      },
+      {
+        'expense_type_name': 'Education',
+        'icon_code_point': Icons.school.codePoint,
+        'icon_font_family': Icons.school.fontFamily,
+        'expense_type_color': '#2196F3', // Blue
+      },
+      {
+        'expense_type_name': 'Pets',
+        'icon_code_point': Icons.pets.codePoint,
+        'icon_font_family': Icons.pets.fontFamily,
+        'expense_type_color': '#FF9800', // Orange
+      },
+      {
+        'expense_type_name': 'Sports',
+        'icon_code_point': Icons.sports_soccer.codePoint,
+        'icon_font_family': Icons.sports_soccer.fontFamily,
+        'expense_type_color': '#9C27B0', // Purple
+      },
+      {
+        'expense_type_name': 'Restaurants',
+        'icon_code_point': Icons.restaurant.codePoint,
+        'icon_font_family': Icons.restaurant.fontFamily,
+        'expense_type_color': '#E91E63', // Pink
+      },
+      {
+        'expense_type_name': 'Bills',
+        'icon_code_point': Icons.receipt_long.codePoint,
+        'icon_font_family': Icons.receipt_long.fontFamily,
+        'expense_type_color': '#795548', // Brown
+      },
+      {
+        'expense_type_name': 'Public Transport',
+        'icon_code_point': Icons.directions_bus.codePoint,
+        'icon_font_family': Icons.directions_bus.fontFamily,
+        'expense_type_color': '#009688', // Teal
+      },
+      {
+        'expense_type_name': 'Gifts',
+        'icon_code_point': Icons.card_giftcard.codePoint,
+        'icon_font_family': Icons.card_giftcard.fontFamily,
+        'expense_type_color': '#F44336', // Red
+      },
+      {
+        'expense_type_name': 'Vacations',
+        'icon_code_point': Icons.beach_access.codePoint,
+        'icon_font_family': Icons.beach_access.fontFamily,
+        'expense_type_color': '#3F51B5', // Indigo
+      },
+      {
+        'expense_type_name': 'Maintenance',
+        'icon_code_point': Icons.build.codePoint,
+        'icon_font_family': Icons.build.fontFamily,
+        'expense_type_color': '#607D8B', // Blue Grey
+      },
+      {
+        'expense_type_name': 'Others',
+        'icon_code_point': Icons.question_mark.codePoint,
+        'icon_font_family': Icons.category.fontFamily,
+        'expense_type_color': '#9E9E9E', // Grey
+      },
+    ];
+    for (var type in defaultExpenseTypes) {
+      await db.insert(
+        'expense_types',
+        type,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
-    // Mark setup as complete
-    await prefs.setBool('isExpenseTypeInserted', false);
   }
 
   Future<int> insertExpenseType(ExpenseType expenseType) async {
@@ -214,21 +266,15 @@ class ExpenseServiceDatabase {
   }
 
   Future<void> insertDefaultTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isFirstRun = prefs.getBool('isTransactionsInserted') ?? true;
+    final db = await _dbHelper.database;
+    final List<TransactionModel> transactions = [];
 
-    if (!isFirstRun) {
-      final db = await _dbHelper.database;
-      final List<TransactionModel> transactions = [];
-
-      for (var transaction in transactions) {
-        await db.insert(
-          'transactions',
-          transaction.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
-      }
-      prefs.setBool('isTransactionsInserted', false);
+    for (var transaction in transactions) {
+      await db.insert(
+        'transactions',
+        transaction.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
   }
 
@@ -241,9 +287,9 @@ class ExpenseServiceDatabase {
         transaction.toMap(),
         // conflictAlgorithm: ConflictAlgorithm.ignore,
       );
-      print("Transaction Added successfully");
+      debugPrint("Transaction Added successfully");
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
