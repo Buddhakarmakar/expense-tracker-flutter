@@ -1,4 +1,5 @@
 import 'package:expense_tracker/pages/home_page.dart';
+import 'package:expense_tracker/pages/stats_page.dart';
 import 'package:expense_tracker/pages/transactions_page.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
 import 'package:flutter/material.dart';
@@ -121,7 +122,7 @@ Widget _getPage(int index) {
     case 1:
       return TransactionsPage(); // will rebuild every time
     case 2:
-      return _PageWidget(title: "Stats", color: Colors.deepOrange);
+      return StatsPage();
     case 3:
       return _PageWidget(title: "Settings", color: Colors.green);
 

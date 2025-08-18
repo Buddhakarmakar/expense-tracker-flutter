@@ -24,6 +24,28 @@ final Map<String, String> accountIcons = {
   'Online': '${path}cashless-payment.png',
   'CARD': '${path}contactless.png',
 };
+
+enum AccountType {
+  cash("CASH", "#FF7043"),
+  upi("UPI", "#42A5F5"),
+  online("ONLINE", "#66BB6A"),
+  card("CARD", "#AB47BC");
+
+  final String accountName;
+  final String color;
+
+  const AccountType(this.accountName, this.color);
+}
+
+extension AccountTypeX on AccountType {
+  static AccountType fromName(String name) {
+    return AccountType.values.firstWhere(
+      (e) => e.accountName.toLowerCase() == name.toLowerCase(),
+      orElse: () => AccountType.cash,
+    );
+  }
+}
+
 IconData iconFromDB(int codePoint, String fontFamily) {
   return IconData(codePoint, fontFamily: fontFamily);
 }

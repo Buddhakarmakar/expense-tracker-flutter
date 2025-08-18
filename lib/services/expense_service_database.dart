@@ -14,6 +14,7 @@ class ExpenseServiceDatabase {
 
   static List<ExpenseType> expenseTypeList = [];
   static List<Account> accountList = [];
+  static List<TransactionWithType> transactionList = [];
 
   // Optional: Preload accounts
   Future<void> insertDefaultAccounts() async {
@@ -23,7 +24,12 @@ class ExpenseServiceDatabase {
     if (!isFirstRun) {
       final db = await _dbHelper.database;
       List<Account> types = [
-        Account(accountId: 101, accountName: "CASH", accountBalance: 1000.0),
+        Account(
+          accountId: 101,
+          accountName: "CASH",
+          accountBalance: 1000.0,
+          accountType: 'CASH',
+        ),
         // Account(accountId: 102, accountName: "Online", accountBalance: 1000.0),
         // Account(accountId: 103, accountName: "UPI", accountBalance: 1000.0),
         // Account(accountId: 104, accountName: "CARD", accountBalance: 1000.0),
@@ -42,17 +48,61 @@ class ExpenseServiceDatabase {
   }
 
   // Insert an account into the database
+
   Future<int> insertAccount(Account account) async {
     final db = await _dbHelper.database;
-    return await db.insert('accounts', account.toMap());
+    try {
+      return await db.insert('accounts', account.toMap());
+    } catch (e) {
+      debugPrint("Error inserting account: $e");
+      return -1; // Indicate failure
+    }
+  }
+
+  // Update an account in the database
+  Future<int> updateAccount(Account account) async {
+    final db = await _dbHelper.database;
+    try {
+      debugPrint("Updating  account  : ${account.toJson().toString()}");
+      return await db.update(
+        'accounts',
+        account.toMap(),
+        where: 'account_id = ?',
+        whereArgs: [account.accountId],
+      );
+    } catch (e) {
+      debugPrint("Error updating account: $e");
+      return -1; // Indicate failure
+    }
+  }
+
+  Future<int> deleteAccount(int id) async {
+    try {
+      debugPrint("Deleting   account  with id : $id");
+      final db = await _dbHelper.database;
+      return await db.delete(
+        'accounts',
+        where: 'account_id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint("-------------Error deleting account : $e");
+      return -1; // Indicate failure
+    }
   }
 
   Future<List<Account>> fetchAllAccounts() async {
-    final db = await _dbHelper.database;
-    final maps = await db.query('accounts');
-    final res = maps.map((map) => Account.fromMap(map)).toList();
-    accountList = res;
-    return res;
+    try {
+      final db = await _dbHelper.database;
+      final maps = await db.query('accounts');
+
+      accountList = maps.map((map) => Account.fromMap(map)).toList();
+
+      debugPrint("Accounts fetched successfully: ${accountList.length}");
+    } catch (e) {
+      debugPrint("Error fetching accounts: $e");
+    }
+    return accountList;
   }
 
   // Optional: Preload expense types
@@ -185,6 +235,7 @@ class ExpenseServiceDatabase {
   Future<void> insertTransaction(TransactionModel transaction) async {
     final db = await _dbHelper.database;
     try {
+      debugPrint("Inserting transaction: ${transaction.toJson().toString()}");
       await db.insert(
         'transactions',
         transaction.toMap(),
@@ -251,25 +302,30 @@ class ExpenseServiceDatabase {
   Future<List<TransactionWithType>> fetchTransactionsWithExpenseType() async {
     final db = await _dbHelper.database;
 
+    //  t.transaction_id,
+    //       t.transaction_type,
+    //       t.amount,
+    //       t.payment_method,
+    //       t.debited_from,
+    //       t.account_id,
+    //       t.expense_type_id,
+    //       e.expense_type_name,
+    //       e.icon_code_point,
+    //       e.icon_font_family,
+    //       e.expense_type_color,
+    //       t.description,
+    //       t.paid_to,
+    //       t.transaction_date,
+    //       t.transaction_time
     final List<Map<String, dynamic>> result = await db.rawQuery('''
     SELECT 
-      t.transaction_id,
-      t.transaction_type,
-      t.amount,
-      t.payment_method,
-      t.debited_from,
-      t.account_id,
-      t.expense_type_id,
-      e.expense_type_name,
-      e.icon_code_point,
-      e.icon_font_family,
-      e.expense_type_color,
-      t.description,
-      t.paid_to,
-      t.transaction_date,
-      t.transaction_time
+     t.*,
+     e.*,
+      a.*
     FROM transactions t
-    JOIN expense_types e ON t.expense_type_id = e.expense_type_id ORDER BY t.transaction_date desc, TIME(t.transaction_time) asc
+    JOIN expense_types e ON t.expense_type_id = e.expense_type_id 
+    JOIN accounts a ON t.account_id = a.account_id
+     ORDER BY t.transaction_date desc, TIME(t.transaction_time) asc
   ''');
 
     // await db.delete('transactions');
@@ -279,9 +335,10 @@ class ExpenseServiceDatabase {
 
     for (var item in res) {
       debugPrint(
-        ' Transaction Date --->${item.transactionDate}......... Time --->${item.transactionTime}.... Id---> ${item.transactionId}',
+        ' Transaction Date --->${item.transactionDate}. Name-> ${item.accountName} --- Accounttype-->${item.accountType}----Time --->${item.transactionTime}.... Id---> ${item.transactionId}',
       );
     }
+    transactionList = res;
     return res;
   }
 }

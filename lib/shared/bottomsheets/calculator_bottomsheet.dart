@@ -3,11 +3,11 @@ import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
-import 'package:expense_tracker/shared/category_picker.dart';
-import 'package:expense_tracker/shared/date_picker.dart';
-import 'package:expense_tracker/shared/note_taker.dart';
-import 'package:expense_tracker/shared/payment_method_picker.dart';
-import 'package:expense_tracker/shared/time_picker.dart';
+import 'package:expense_tracker/shared/dialogs/category_picker.dart';
+import 'package:expense_tracker/shared/dialogs/date_picker.dart';
+import 'package:expense_tracker/shared/dialogs/note_taker.dart';
+import 'package:expense_tracker/shared/dialogs/account_picker.dart';
+import 'package:expense_tracker/shared/dialogs/time_picker.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
@@ -37,6 +37,9 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
   TimeOfDay selectedTime = TimeOfDay.now();
 
   String paymentMethod = 'CASH';
+
+  String debitedFromAccount = 'CASH'; // Default account, can be changed
+  int debitedFromAccountId = 101; // Default account ID, can be changed
   late TransactionWithType _model;
 
   @override
@@ -67,6 +70,8 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
     selectedDate = DateTime.parse(model.transactionDate);
     selectedTime = parseTimeOfDay(model.transactionTime);
     paymentMethod = model.paymentMethod;
+    debitedFromAccount = model.debitedFrom;
+    debitedFromAccountId = model.accountId;
   }
 
   void onPressed(String val) {
@@ -88,8 +93,8 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
       transactionType: "EXPENSE",
       amount: double.parse(_input.trim()),
       paymentMethod: paymentMethod,
-      debitedFrom: 'Default Account',
-      accountId: 101,
+      debitedFrom: debitedFromAccount,
+      accountId: debitedFromAccountId,
       expenseTypeId: widget.expenseTypeId,
       transactionDate: selectedDate,
       transactionTime: formatTransactionTime(selectedTime),
@@ -179,14 +184,13 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        accountIcons[paymentMethod] ??
-                            'assets/expense_trcker_icons/money.png',
-                        height: 20,
-                        width: 20,
+                      Icon(
+                        Icons.account_balance_wallet,
+                        color: Colors.white,
+                        size: 32,
                       ),
                       SizedBox(width: 5),
-                      Text(paymentMethod),
+                      Text(debitedFromAccount),
                     ],
                   ),
                 ),
@@ -352,11 +356,13 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
     showDialog(
       context: context,
       builder: (context) {
-        return PaymentMethodPicker(
-          paymentMethods: ExpenseServiceDatabase.accountList,
-          onPaymentMethodSelected: (selected) {
+        return AccountPicker(
+          accountList: ExpenseServiceDatabase.accountList,
+          onAccountSelected: (accountName, accountType, accountId) {
             setState(() {
-              paymentMethod = selected;
+              debitedFromAccount = accountName;
+              paymentMethod = accountType; // Update payment method
+              debitedFromAccountId = accountId; // Update account ID
             });
           },
         );

@@ -1,7 +1,7 @@
 import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
-import 'package:expense_tracker/shared/calculator.dart';
-import 'package:expense_tracker/shared/expense_categories_bottomsheet.dart';
+import 'package:expense_tracker/shared/bottomsheets/calculator_bottomsheet.dart';
+import 'package:expense_tracker/shared/bottomsheets/expense_categories_bottomsheet.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 

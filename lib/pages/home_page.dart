@@ -1,6 +1,6 @@
 import 'package:expense_tracker/pages/manage_categories.dart';
-import 'package:expense_tracker/shared/account_list.dart';
-import 'package:expense_tracker/shared/expense_categories.dart';
+import 'package:expense_tracker/shared/lists/account_list.dart';
+import 'package:expense_tracker/shared/lists/expense_categories.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,6 +12,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late VoidCallback _reloadCategories;
+  late VoidCallback _reloadAccounts;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -48,6 +50,8 @@ class _HomePageState extends State<HomePage> {
                       debugPrint('Manage Categories returned: $res');
                       if (res != null && res is bool && res) {
                         _reloadCategories(); // reload categories if needed
+
+                        _reloadAccounts();
                       }
                     },
                   ),
@@ -77,7 +81,7 @@ class _HomePageState extends State<HomePage> {
             ),
             SizedBox(height: 16),
             // Displaying the account list
-            AccountList(),
+            AccountList(onInit: (reload) => _reloadAccounts = reload),
           ],
         ),
       ),

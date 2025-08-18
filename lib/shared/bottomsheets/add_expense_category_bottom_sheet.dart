@@ -1,7 +1,7 @@
 import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
-import 'package:expense_tracker/shared/color_picker_bottom_sheet.dart';
-import 'package:expense_tracker/shared/icon_picker_bottom_sheet.dart';
+import 'package:expense_tracker/shared/bottomsheets/color_picker_bottom_sheet.dart';
+import 'package:expense_tracker/shared/bottomsheets/icon_picker_bottom_sheet.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 

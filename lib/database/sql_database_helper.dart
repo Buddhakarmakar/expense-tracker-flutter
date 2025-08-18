@@ -38,6 +38,7 @@ class SqlDatabaseHelper {
         CREATE TABLE accounts (
           account_id INTEGER PRIMARY KEY AUTOINCREMENT,
           account_name TEXT NOT NULL UNIQUE,
+          account_type TEXT NOT NULL CHECK (account_type IN ('CASH', 'ONLINE', 'CARD', 'UPI')),
           account_balance REAL  
         )
       ''');

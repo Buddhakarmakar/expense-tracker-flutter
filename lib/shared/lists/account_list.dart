@@ -1,12 +1,36 @@
 import 'dart:math';
 
+import 'package:expense_tracker/models/account.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
+import 'package:expense_tracker/shared/bottomsheets/accounts_ontap_bottomsheet.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
-class AccountList extends StatelessWidget {
-  AccountList({super.key});
+class AccountList extends StatefulWidget {
+  final bool? isEditable;
+  final void Function(VoidCallback reload)? onInit;
+  const AccountList({super.key, this.isEditable = false, this.onInit});
+
+  @override
+  State<AccountList> createState() => _AccountListState();
+}
+
+class _AccountListState extends State<AccountList> {
   final Random _random = Random();
+  Future<List<Account>>? _accounts;
+
+  @override
+  void initState() {
+    super.initState();
+    _accounts = ExpenseServiceDatabase.instance.fetchAllAccounts();
+    widget.onInit?.call(reload);
+  }
+
+  void reload() {
+    setState(() {
+      _accounts = ExpenseServiceDatabase.instance.fetchAllAccounts();
+    });
+  }
 
   // Generate a random color
   Color _getRandomColor() {
@@ -21,7 +45,7 @@ class AccountList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: ExpenseServiceDatabase.instance.fetchAllAccounts(),
+      future: _accounts,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -33,6 +57,8 @@ class AccountList extends StatelessWidget {
           return Center(child: Text('No Accounts found.'));
         }
         final accounts = snapshot.data!;
+        final accountType =
+            AccountType.cash; // Default account type, can be changed as needed
         return GridView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(), // disable GridView scroll
@@ -52,7 +78,23 @@ class AccountList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: InkWell(
-                  onTap: () {},
+                  onTap: () async {
+                    if (widget.isEditable!) {
+                      final value = await showModalBottomSheet(
+                        context: context,
+                        builder:
+                            (context) => accountsOnTapBottomSheet(
+                              accounts[index],
+                              context,
+                            ),
+                      );
+                      if (value != null && value > 0) {
+                        setState(() {
+                          reload();
+                        });
+                      }
+                    }
+                  },
 
                   borderRadius: BorderRadius.circular(
                     12,
@@ -62,18 +104,21 @@ class AccountList extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          accountIcons[accounts[index].accountName] ??
-                              'assets/expense_trcker_icons/other.png',
-                          height: 48,
-                          width: 48,
+                        Icon(
+                          Icons.account_balance_wallet,
+                          color: Colors.white,
+                          size: 32,
                         ),
+
                         SizedBox(height: 8),
                         Container(
                           height: 2,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [_getRandomColor(), _getRandomColor()],
+                              colors: [
+                                colorFromHex(accountType.color),
+                                _getRandomColor(),
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(1),
                           ),

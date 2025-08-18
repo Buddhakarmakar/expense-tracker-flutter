@@ -1,7 +1,7 @@
 import 'package:expense_tracker/helper/database_delete.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
 import 'package:expense_tracker/services/expense_service_database.dart';
-import 'package:expense_tracker/shared/calculator.dart';
+import 'package:expense_tracker/shared/bottomsheets/calculator_bottomsheet.dart';
 import 'package:expense_tracker/utils/constant.dart';
 import 'package:expense_tracker/utils/util_functions.dart';
 import 'package:flutter/material.dart';
@@ -48,14 +48,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
           children: [
             _textBox(_controller),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                _transactions.then((value) {
-                  exportTransactionsToJsonFile(value);
-                });
-              },
-              child: Text('Export'),
-            ),
+
             FutureBuilder<List<TransactionWithType>>(
               future: _transactions,
               builder: (context, snapshot) {
@@ -181,10 +174,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                       ),
                                     ),
                                     Text(
-                                      transactions[index].paymentMethod,
+                                      transactions[index].debitedFrom,
                                       style: TextStyle(
-                                        color: Colors.yellow,
-                                        fontSize: 14,
+                                        color: colorFromHex(
+                                          AccountTypeX.fromName(
+                                            transactions[index].accountType,
+                                          ).color,
+                                        ),
+                                        fontSize: 16,
                                       ),
                                     ),
                                   ],
@@ -200,6 +197,17 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                       // 'Date: ${DateTime.now().subtract(Duration(days: index)).toLocal()}',
                                       style: TextStyle(
                                         color: Colors.white54,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                    Text(
+                                      transactions[index].paymentMethod,
+                                      style: TextStyle(
+                                        color: colorFromHex(
+                                          AccountTypeX.fromName(
+                                            transactions[index].accountType,
+                                          ).color,
+                                        ),
                                         fontSize: 10,
                                       ),
                                     ),

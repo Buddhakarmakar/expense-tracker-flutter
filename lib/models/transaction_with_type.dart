@@ -8,6 +8,8 @@ class TransactionWithType {
   final String paymentMethod;
   final String debitedFrom;
   final int accountId;
+  final String accountName;
+  final String accountType;
   final int expenseTypeId;
   final String expenseTypeName;
   final int iconCodePoint; // Use int for code point
@@ -25,6 +27,8 @@ class TransactionWithType {
     required this.paymentMethod,
     required this.debitedFrom,
     required this.accountId,
+    required this.accountName,
+    required this.accountType,
     required this.expenseTypeId,
     required this.expenseTypeName,
     required this.iconCodePoint,
@@ -44,6 +48,8 @@ class TransactionWithType {
       paymentMethod: json['payment_method'],
       debitedFrom: json['debited_from'],
       accountId: json['account_id'],
+      accountName: json['account_name'] ?? 'CASH',
+      accountType: json['account_type'] ?? 'CASH',
       expenseTypeId: json['expense_type_id'],
       expenseTypeName: json['expense_type_name'],
       iconCodePoint: json['icon_code_point'],
@@ -88,8 +94,10 @@ class TransactionWithType {
       transactionType: transactionType,
       amount: amount,
       paymentMethod: paymentMethod,
-      debitedFrom: 'Default Account',
+      debitedFrom: 'CASH',
       accountId: accountId,
+      accountName: 'CASH',
+      accountType: 'CASH',
       expenseTypeId: expenseTypeId,
       expenseTypeName: expenseTypeName,
       iconCodePoint: Icons.money.codePoint,
