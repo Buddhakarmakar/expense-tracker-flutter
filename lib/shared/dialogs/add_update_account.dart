@@ -82,19 +82,21 @@ Future<Account?> showAccountDialog(
                           value: t,
                           child: Row(
                             children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  color: Color(
-                                    int.parse(
-                                      t.color.replaceFirst('#', '0xff'),
-                                    ),
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
+                              // Container(
+                              //   width: 12,
+                              //   height: 12,
+                              //   margin: const EdgeInsets.only(right: 8),
+                              //   decoration: BoxDecoration(
+                              //     color: Color(
+                              //       int.parse(
+                              //         t.color.replaceFirst('#', '0xff'),
+                              //       ),
+                              //     ),
+                              //     shape: BoxShape.circle,
+                              //   ),
+                              // ),
+                              Icon(t.icon, color: colorFromHex(t.color)),
+                              SizedBox(width: 8),
                               Text(t.accountName),
                             ],
                           ),

@@ -8,8 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MyApp());
-
   // Run inserts after UI starts
   Future.microtask(() async {
     final prefs = await SharedPreferences.getInstance();
@@ -21,6 +19,7 @@ void main() async {
       await prefs.setBool('isFirstRun', false);
     }
   });
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -38,7 +38,7 @@ class SqlDatabaseHelper {
         CREATE TABLE accounts (
           account_id INTEGER PRIMARY KEY AUTOINCREMENT,
           account_name TEXT NOT NULL UNIQUE,
-          account_type TEXT NOT NULL CHECK (account_type IN ('CASH', 'ONLINE', 'CARD', 'UPI')),
+          account_type TEXT NOT NULL CHECK (account_type IN ('CASH', 'ONLINE', 'CARD', 'BANK')),
           account_balance REAL  
         )
       ''');
@@ -64,7 +64,7 @@ class SqlDatabaseHelper {
         transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
         transaction_type TEXT NOT NULL CHECK (transaction_type IN ('INCOME', 'EXPENSE')),
         amount REAL NOT NULL,
-        payment_method TEXT NOT NULL CHECK (payment_method IN ('CASH', 'ONLINE', 'CARD', 'UPI')),
+        payment_method TEXT NOT NULL CHECK (payment_method IN ('CASH', 'ONLINE', 'CARD', 'BANK')),
         debited_from TEXT NOT NULL,
         account_id INTEGER,
         expense_type_id INTEGER,
@@ -86,6 +86,7 @@ class SqlDatabaseHelper {
         account_transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
         transaction_id INTEGER NOT NULL,
         account_id INTEGER NOT NULL,
+        balance REAL NOT NULL,
         balance_after_transaction REAL NOT NULL,
         recorded_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (transaction_id) REFERENCES transactions(transaction_id) ON DELETE CASCADE,

@@ -26,15 +26,15 @@ final Map<String, String> accountIcons = {
 };
 
 enum AccountType {
-  cash("CASH", "#FF7043"),
-  upi("UPI", "#42A5F5"),
-  online("ONLINE", "#66BB6A"),
-  card("CARD", "#AB47BC");
+  cash("CASH", "#FF7043", Icons.account_balance_wallet), // ✅ cash icon
+  bank("BANK", "#66BB6A", Icons.account_balance), // ✅ bank/finance icon
+  card("CARD", "#AB47BC", Icons.credit_card); // ✅ card icon
 
   final String accountName;
   final String color;
+  final IconData icon;
 
-  const AccountType(this.accountName, this.color);
+  const AccountType(this.accountName, this.color, this.icon);
 }
 
 extension AccountTypeX on AccountType {

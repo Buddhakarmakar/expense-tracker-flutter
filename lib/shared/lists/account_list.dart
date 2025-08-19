@@ -105,8 +105,14 @@ class _AccountListState extends State<AccountList> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.account_balance_wallet,
-                          color: Colors.white,
+                          AccountTypeX.fromName(
+                            accounts[index].accountType,
+                          ).icon,
+                          color: colorFromHex(
+                            AccountTypeX.fromName(
+                              accounts[index].accountType,
+                            ).color,
+                          ),
                           size: 32,
                         ),
 
@@ -131,6 +137,26 @@ class _AccountListState extends State<AccountList> {
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1, // 👈 limit to one line
+                          overflow:
+                              TextOverflow
+                                  .ellipsis, // 👈 show "..." if too long
+                          softWrap: false,
+                        ),
+
+                        SizedBox(height: 4),
+                        Text(
+                          "₹ ${accounts[index].accountBalance.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            color: Colors.greenAccent,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1, // 👈 limit to one line
+
+                          overflow:
+                              TextOverflow
+                                  .ellipsis, // 👈 show "..." if too long
+                          softWrap: false,
                         ),
                       ],
                     ),

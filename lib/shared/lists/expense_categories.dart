@@ -132,7 +132,7 @@ class _ExpenseCategoriesState extends State<ExpenseCategories> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.blue,
+                                Colors.white10,
                                 colorFromHex(expense.expenseTypeColor),
                               ],
                             ),

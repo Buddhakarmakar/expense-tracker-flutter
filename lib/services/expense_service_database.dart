@@ -1,10 +1,10 @@
 import 'package:expense_tracker/database/sql_database_helper.dart';
 import 'package:expense_tracker/models/account.dart';
+import 'package:expense_tracker/models/account_transaction.dart';
 import 'package:expense_tracker/models/expense_type.dart';
 import 'package:expense_tracker/models/transaction_model.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class ExpenseServiceDatabase {
@@ -15,6 +15,7 @@ class ExpenseServiceDatabase {
   static List<ExpenseType> expenseTypeList = [];
   static List<Account> accountList = [];
   static List<TransactionWithType> transactionList = [];
+  static List<AccountTransaction> accountTransactionList = [];
 
   // Optional: Preload accounts
   Future<void> insertDefaultAccounts() async {
@@ -102,12 +103,12 @@ class ExpenseServiceDatabase {
   Future<void> insertDefaultExpenseTypes() async {
     final db = await _dbHelper.database;
     final defaultExpenseTypes = [
-      {
-        'expense_type_name': 'Shopping',
-        'icon_code_point': Icons.shopping_cart.codePoint,
-        'icon_font_family': Icons.shopping_cart.fontFamily,
-        'expense_type_color': '#FF7043',
-      },
+      // {
+      //   'expense_type_name': 'Shopping',
+      //   'icon_code_point': Icons.shopping_cart.codePoint,
+      //   'icon_font_family': Icons.shopping_cart.fontFamily,
+      //   'expense_type_color': '#FF7043',
+      // },
       {
         'expense_type_name': 'Groceries',
         'icon_code_point': Icons.local_grocery_store.codePoint,
@@ -121,14 +122,8 @@ class ExpenseServiceDatabase {
         'expense_type_color': '#2196F3', // Blue
       },
       {
-        'expense_type_name': 'Pets',
-        'icon_code_point': Icons.pets.codePoint,
-        'icon_font_family': Icons.pets.fontFamily,
-        'expense_type_color': '#FF9800', // Orange
-      },
-      {
-        'expense_type_name': 'Sports',
-        'icon_code_point': Icons.sports_soccer.codePoint,
+        'expense_type_name': 'Subscriptions',
+        'icon_code_point': Icons.subscriptions_rounded.codePoint,
         'icon_font_family': Icons.sports_soccer.fontFamily,
         'expense_type_color': '#9C27B0', // Purple
       },
@@ -278,18 +273,52 @@ class ExpenseServiceDatabase {
     }
   }
 
-  Future<void> insertTransaction(TransactionModel transaction) async {
+  Future<int> insertTransaction(TransactionModel transaction) async {
     final db = await _dbHelper.database;
+
     try {
       debugPrint("Inserting transaction: ${transaction.toJson().toString()}");
-      await db.insert(
+      final transactionId = await db.insert(
         'transactions',
         transaction.toMap(),
         // conflictAlgorithm: ConflictAlgorithm.ignore,
       );
       debugPrint("Transaction Added successfully");
+
+      if (transactionId > 0) {
+        AccountTransaction insertAccountTransaction = AccountTransaction(
+          transactionId: transactionId,
+          accountId: transaction.accountId,
+          balance: transaction.amount,
+          balanceAfterTransaction: transaction.amount, // Assuming same for now
+          recordedAt: DateTime.now().toIso8601String(),
+        );
+        final res = await db.rawUpdate(
+          '''
+        UPDATE accounts 
+        SET account_balance = (account_balance - ?) 
+        WHERE account_id = ?
+        ''',
+          [transaction.amount, transaction.accountId],
+        );
+        if (res > 0) {
+          debugPrint("Account balance updated successfully");
+          final accountTransactionInsertCount = await this
+              .insertAccountTransaction(insertAccountTransaction);
+          if (accountTransactionInsertCount > 0) {
+            debugPrint("Account transaction inserted successfully");
+          } else {
+            debugPrint("Failed to insert account transaction");
+          }
+        } else {
+          debugPrint("Failed to update account balance");
+        }
+      }
+
+      return transactionId;
     } catch (e) {
       debugPrint(e.toString());
+      return -1; // Indicate failure
     }
   }
 
@@ -371,7 +400,7 @@ class ExpenseServiceDatabase {
     FROM transactions t
     JOIN expense_types e ON t.expense_type_id = e.expense_type_id 
     JOIN accounts a ON t.account_id = a.account_id
-     ORDER BY t.transaction_date desc, TIME(t.transaction_time) asc
+     ORDER BY  t.transaction_date DESC, t.transaction_time DESC
   ''');
 
     // await db.delete('transactions');
@@ -386,5 +415,41 @@ class ExpenseServiceDatabase {
     }
     transactionList = res;
     return res;
+  }
+
+  Future<int> insertAccountTransaction(
+    AccountTransaction accountTransaction,
+  ) async {
+    final db = await _dbHelper.database;
+    try {
+      debugPrint(
+        "Inserting account transaction: ${accountTransaction.toJson().toString()}",
+      );
+      return db.insert(
+        'account_transactions',
+        accountTransaction.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    } catch (e) {
+      debugPrint("Error inserting account transaction: $e");
+      return -1; // Indicate failure
+    }
+  }
+
+  Future<List<AccountTransaction>> fetchAccountTransactions() async {
+    final db = await _dbHelper.database;
+    try {
+      final maps = await db.query('account_transactions');
+      List<AccountTransaction> accountTransactions =
+          maps.map((map) => AccountTransaction.fromMap(map)).toList();
+      debugPrint(
+        "Account transactions fetched successfully: ${accountTransactions.length}",
+      );
+      accountTransactionList = accountTransactions;
+      return accountTransactions;
+    } catch (e) {
+      debugPrint("Error fetching account transactions: $e");
+      return [];
+    }
   }
 }

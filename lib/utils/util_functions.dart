@@ -21,18 +21,19 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:expense_tracker/models/account_transaction.dart';
 import 'package:expense_tracker/models/transaction_with_type.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-Future<void> exportTransactionsToJsonFile(
+Future<int> exportTransactionsToJsonFile(
   List<TransactionWithType> transactions,
 ) async {
   try {
     // Ask storage permission
     if (await Permission.manageExternalStorage.request().isDenied) {
       debugPrint("❌ Manage external storage permission denied");
-      return;
+      return -1;
     }
 
     // Create a folder "expenses" in external storage
@@ -49,9 +50,45 @@ Future<void> exportTransactionsToJsonFile(
 
     // Write to file
     await file.writeAsString(jsonString);
-
     debugPrint('✅ Transactions exported to: ${file.path}');
+    return transactions.length; // Return the number of transactions exported
   } catch (e) {
     debugPrint('❌ Error exporting: $e');
+    return -1; // Indicate an error occurred
+  }
+}
+
+Future<int> exportAccountTransactionsToJsonFile(
+  List<AccountTransaction> accountTransactions,
+) async {
+  try {
+    // Ask storage permission
+    if (await Permission.manageExternalStorage.request().isDenied) {
+      debugPrint("❌ Manage external storage permission denied");
+      return -1;
+    }
+
+    // Create a folder "expenses" in external storage
+    final directory = Directory('/storage/emulated/0/expenses');
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+
+    // Convert transactions to JSON
+    final jsonString = jsonEncode(accountTransactions);
+
+    // Create file path
+    final file = File('${directory.path}/account_transactions_export.json');
+
+    // Write to file
+    await file.writeAsString(jsonString);
+
+    debugPrint('✅ Transactions exported to: ${file.path}');
+
+    return accountTransactions
+        .length; // Return the number of transactions exported
+  } catch (e) {
+    debugPrint('❌ Error exporting: $e');
+    return -1; // Indicate an error occurred
   }
 }

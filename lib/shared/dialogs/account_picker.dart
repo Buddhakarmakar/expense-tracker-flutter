@@ -1,4 +1,5 @@
 import 'package:expense_tracker/models/account.dart';
+import 'package:expense_tracker/utils/constant.dart';
 import 'package:flutter/material.dart';
 
 class AccountPicker extends StatelessWidget {
@@ -27,12 +28,18 @@ class AccountPicker extends StatelessWidget {
                 return ListTile(
                   leading: Icon(
                     Icons.account_balance_wallet,
-                    color: Colors.white,
-                    size: 32,
+                    color: colorFromHex(
+                      AccountTypeX.fromName(account.accountType).color,
+                    ),
+                    size: 24,
                   ),
                   title: Text(
                     account.accountName,
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   onTap: () {
                     onAccountSelected(

@@ -103,7 +103,7 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
       createdAt: DateTime.now(),
     );
 
-    print("Insaide on add");
+    debugPrint("Inside onAdd transaction: ${tm.toJson()}");
     if (!widget.newTransaction) {
       tm.setTransactionId(_model.transactionId!);
       debugPrint("Updating Transaction: ${tm.toJson()}");
@@ -124,36 +124,50 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
         ),
       );
     } else {
-      await ExpenseServiceDatabase.instance.insertTransaction(tm);
+      final res = await ExpenseServiceDatabase.instance.insertTransaction(tm);
       debugPrint("new Transaction: ${tm.toJson()}");
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Transaction added!'),
-          duration: Duration(seconds: 4),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      if (res > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Transaction added!'),
+            duration: Duration(seconds: 3),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            action: SnackBarAction(
+              label: 'UNDO',
+              textColor: Colors.white,
+              onPressed: () {
+                // Undo logic here
+                Future<int> deleteCount =
+                    ExpenseServiceDatabase.instance.deleteLastTransactcion();
+                deleteCount.then((value) {
+                  if (value == 1) {
+                    debugPrint("Delete Complete");
+                  } else {
+                    debugPrint("Delete failed");
+                  }
+                });
+              },
+            ),
           ),
-          action: SnackBarAction(
-            label: 'UNDO',
-            textColor: Colors.white,
-            onPressed: () {
-              // Undo logic here
-              Future<int> deleteCount =
-                  ExpenseServiceDatabase.instance.deleteLastTransactcion();
-              deleteCount.then((value) {
-                if (value == 1) {
-                  print("Delete Complete");
-                } else {
-                  print("Delete failed");
-                }
-              });
-            },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add transaction!'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.red[800],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -172,13 +186,17 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
             children: [
               // Left button
               SizedBox(
-                height: 40,
+                height: 36,
+                width: 100, // 👈 fixed width
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple[300],
+                    backgroundColor: colorFromHex(
+                      AccountTypeX.fromName(paymentMethod).color,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   ),
                   onPressed: () => _openpaymentMethodPicker(context),
                   child: Row(
@@ -187,10 +205,22 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
                       Icon(
                         Icons.account_balance_wallet,
                         color: Colors.white,
-                        size: 32,
+                        size: 20,
                       ),
-                      SizedBox(width: 5),
-                      Text(debitedFromAccount),
+                      const SizedBox(width: 6),
+                      // 👇 This makes text ellipsize
+                      Expanded(
+                        child: Text(
+                          debitedFromAccount,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -232,32 +262,42 @@ class _CalculatorBottomSheetState extends State<CalculatorBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorFromHex(
-                    selectedCategory?.expenseTypeColor ?? '#FFFFFF',
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorFromHex(
+                      selectedCategory?.expenseTypeColor ?? '#FFFFFF',
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                onPressed: () => _openCategoryPicker(context),
-                child: Row(
-                  children: [
-                    Icon(
-                      iconFromDB(
-                        selectedCategory?.iconCodePoint ??
-                            Icons.shopping_cart.codePoint,
-                        selectedCategory?.iconFontFaily ?? 'MaterialIcons',
+                  onPressed: () => _openCategoryPicker(context),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        iconFromDB(
+                          selectedCategory?.iconCodePoint ??
+                              Icons.shopping_cart.codePoint,
+                          selectedCategory?.iconFontFaily ?? 'MaterialIcons',
+                        ),
+                        color: Colors.white,
+                        size: 18,
                       ),
-                      color: colorFromHex('#FFFFFF'),
-                      size: 20,
-                    ),
-                    SizedBox(width: 5),
-                    Text(
-                      selectedCategory?.expenseTypeName ?? 'Select Category',
-                    ),
-                  ],
+                      SizedBox(width: 5),
+                      Expanded(
+                        // 👈 ensures text takes only available space
+                        child: Text(
+                          selectedCategory?.expenseTypeName ??
+                              'Select Category',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               IconButton(
@@ -428,7 +468,7 @@ String formatTransactionTime(TimeOfDay timeOfDay) {
     timeOfDay.hour,
     timeOfDay.minute,
     0, // default second
-    97, // hundredths of a second as milliseconds (97 ms)
+    0, // hundredths of a second as milliseconds (97 ms)
   );
   return "${fullDateTime.hour.toString().padLeft(2, '0')}:"
       "${fullDateTime.minute.toString().padLeft(2, '0')}:"
